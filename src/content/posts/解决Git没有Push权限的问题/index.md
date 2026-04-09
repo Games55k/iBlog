@@ -5,6 +5,7 @@ description: '提供一个解决Git没有Push权限的问题思路'
 image: ''
 tags: [Git]
 category: 'Code'
+pinned: false
 draft: false 
 lang: ''
 ---

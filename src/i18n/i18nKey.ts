@@ -31,6 +31,7 @@ enum I18nKey {
 
 	author = "author",
 	publishedAt = "publishedAt",
+	pinned = "pinned",
 	license = "license",
 }
 

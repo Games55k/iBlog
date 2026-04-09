@@ -5,6 +5,7 @@ description: '如何给开源项目的其他分支贡献代码呢'
 image: ''
 tags: [Git]
 category: 'Code'
+pinned: false
 draft: false 
 lang: ''
 ---

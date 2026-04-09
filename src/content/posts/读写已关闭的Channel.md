@@ -5,6 +5,7 @@ description: '读写已关闭的 Channel 会发生什么'
 image: ''
 tags: [Go, Channel]
 category: 'Code'
+pinned: false
 draft: false 
 lang: ''
 ---

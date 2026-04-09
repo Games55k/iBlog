@@ -5,6 +5,7 @@ description: 'MVC模型（Model-View-Controller）是一种经典的软件架构
 image: ''
 tags: [规范]
 category: 'Code'
+pinned: false
 draft: false 
 lang: ''
 ---

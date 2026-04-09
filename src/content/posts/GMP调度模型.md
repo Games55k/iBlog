@@ -5,6 +5,7 @@ description: ''
 image: ''
 tags: [Go]
 category: 'Code'
+pinned: false
 draft: false 
 lang: ''
 ---
