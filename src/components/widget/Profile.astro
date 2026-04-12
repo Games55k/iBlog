@@ -5,6 +5,8 @@ import { url } from "../../utils/url-utils";
 import ImageWrapper from "../misc/ImageWrapper.astro";
 
 const config = profileConfig;
+const bioPool = config.bioQuotes.filter(Boolean);
+const initialBio = bioPool[0] ?? "";
 ---
 <div class="card-base p-3">
     <a aria-label="Go to About Page" href={url('/about/')}
@@ -21,7 +23,13 @@ const config = profileConfig;
     <div class="px-2">
         <div class="font-bold text-xl text-center mb-1 dark:text-neutral-50 transition">{config.name}</div>
         <div class="h-1 w-5 bg-[var(--primary)] mx-auto rounded-full mb-2 transition"></div>
-        <div class="text-center text-neutral-400 mb-2.5 transition">{config.bio}</div>
+        <div
+            id="profile-bio"
+            class="text-center text-neutral-400 mb-2.5 transition"
+            data-bio-pool={JSON.stringify(bioPool)}
+        >
+            {initialBio}
+        </div>
         <div class="flex flex-wrap gap-2 justify-center mb-1">
             {config.links.length > 1 && config.links.map(item =>
                     <a rel="me" aria-label={item.name} href={item.url} target="_blank" class="btn-regular rounded-lg h-10 w-10 active:scale-90">
@@ -37,3 +45,59 @@ const config = profileConfig;
     </div>
 </div>
 
+<script is:inline>
+	const PROFILE_BIO_ID = "profile-bio";
+	let swupHookBound = false;
+
+	const updateRandomBio = () => {
+		const bioElement = document.getElementById(PROFILE_BIO_ID);
+		if (!(bioElement instanceof HTMLElement)) {
+			return;
+		}
+
+		const rawBioPool = bioElement.dataset.bioPool;
+		if (!rawBioPool) {
+			return;
+		}
+
+		let bioPool = [];
+		try {
+			bioPool = JSON.parse(rawBioPool);
+		} catch {
+			return;
+		}
+
+		if (!Array.isArray(bioPool) || bioPool.length === 0) {
+			return;
+		}
+
+		const randomBio = bioPool[Math.floor(Math.random() * bioPool.length)];
+		if (typeof randomBio === "string") {
+			bioElement.textContent = randomBio;
+		}
+	};
+
+	const bindSwupHook = () => {
+		if (swupHookBound || !window.swup?.hooks) {
+			return;
+		}
+
+		window.swup.hooks.on("page:view", updateRandomBio);
+		swupHookBound = true;
+	};
+
+	const setupRandomBio = () => {
+		updateRandomBio();
+		bindSwupHook();
+	};
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupRandomBio, { once: true });
+	} else {
+		setupRandomBio();
+	}
+
+	if (!window.swup?.hooks) {
+		document.addEventListener("swup:enable", bindSwupHook, { once: true });
+	}
+</script>
