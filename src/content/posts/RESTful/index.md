@@ -5,8 +5,7 @@ description: 'RESTful 接口规范'
 image: ''
 tags: [规范]
 category: 'Code'
-pinned: false
-draft: false 
+draft: false
 lang: ''
 ---
 

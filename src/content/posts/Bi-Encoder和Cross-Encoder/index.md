@@ -5,8 +5,7 @@ description: 'Bi-Encoder 与 Cross-Encoder的区别、应用与实践'
 image: ''
 tags: [NLP, RAG]
 category: 'LLM'
-pinned: false
-draft: false 
+draft: false
 lang: ''
 ---
 

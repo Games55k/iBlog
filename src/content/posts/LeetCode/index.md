@@ -6,7 +6,6 @@ image: './leetcode.svg'
 showImage: false
 tags: [LeetCode]
 category: 'Code'
-pinned: false
 draft: false
 lang: ''
 ---

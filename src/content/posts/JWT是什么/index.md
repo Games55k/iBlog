@@ -5,8 +5,7 @@ description: 'Json Web Token'
 image: ''
 tags: [middleware]
 category: 'Code'
-pinned: false
-draft: false 
+draft: false
 lang: ''
 ---
 
@@ -62,4 +61,3 @@ Secret 存放在服务端，用于直接进行签名验证。
 
 ## End
 如果你对 JWT 感兴趣，可以玩玩看，前往 [jwt.io](https://www.jwt.io)，有 JWT Decoder 和 JWT Encoder 两种模式，分别是解密模式和加密模式。
-

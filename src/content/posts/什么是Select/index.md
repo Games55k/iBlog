@@ -5,8 +5,7 @@ description: ''
 image: ''
 tags: [Go, Channel]
 category: 'Code'
-pinned: false
-draft: false 
+draft: false
 lang: ''
 ---
 

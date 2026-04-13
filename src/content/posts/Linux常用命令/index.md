@@ -5,8 +5,7 @@ description: '常见的五十个 Linux 必会指令'
 image: ''
 tags: [Linux]
 category: 'Code'
-pinned: false
-draft: false 
+draft: false
 lang: ''
 ---
 

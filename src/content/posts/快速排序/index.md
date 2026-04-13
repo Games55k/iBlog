@@ -5,8 +5,7 @@ description: '基于分治的思想'
 image: ''
 tags: [算法]
 category: 'Code'
-pinned: false
-draft: false 
+draft: false
 lang: ''
 ---
 

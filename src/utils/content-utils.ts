@@ -20,6 +20,18 @@ async function getRawSortedPosts() {
 	return sorted;
 }
 
+async function getRawPostsSortedByDate() {
+	const allBlogPosts = await getCollection("posts", ({ data }) => {
+		return import.meta.env.PROD ? data.draft !== true : true;
+	});
+
+	return allBlogPosts.sort((a, b) => {
+		const dateA = new Date(a.data.published);
+		const dateB = new Date(b.data.published);
+		return dateA > dateB ? -1 : 1;
+	});
+}
+
 export async function getSortedPosts() {
 	const sorted = await getRawSortedPosts();
 
@@ -39,7 +51,7 @@ export type PostForList = {
 	data: CollectionEntry<"posts">["data"];
 };
 export async function getSortedPostsList(): Promise<PostForList[]> {
-	const sortedFullPosts = await getRawSortedPosts();
+	const sortedFullPosts = await getRawPostsSortedByDate();
 
 	// delete post.body
 	const sortedPostsList = sortedFullPosts.map((post) => ({

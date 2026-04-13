@@ -5,8 +5,7 @@ description: '深圳小厂，Go后端开发实习生'
 image: ''
 tags: [面经]
 category: 'Code'
-pinned: false
-draft: false 
+draft: false
 lang: ''
 ---
 
