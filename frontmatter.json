@@ -42,6 +42,12 @@
           "isPreviewImage": true
         },
         {
+          "title": "show image",
+          "name": "showImage",
+          "type": "boolean",
+          "default": true
+        },
+        {
           "title": "tags",
           "name": "tags",
           "type": "list"

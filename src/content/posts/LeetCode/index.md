@@ -2,7 +2,8 @@
 title: LeetCode
 published: 2025-10-24
 description: '个人LeetCode刷题记录'
-image: ''
+image: './leetcode.svg'
+showImage: false
 tags: [LeetCode]
 category: 'Code'
 pinned: false

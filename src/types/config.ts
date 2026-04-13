@@ -80,6 +80,7 @@ export type BlogPostData = {
 	tags: string[];
 	draft?: boolean;
 	image?: string;
+	showImage?: boolean;
 	category?: string;
 	prevTitle?: string;
 	prevSlug?: string;
