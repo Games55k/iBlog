@@ -63,6 +63,48 @@ public:
 </details>
 
 <details>
+<summary><strong>[Middle] 53. 最大子数组和</strong></summary>
+
+题目链接：53. 最大子数组和[<sup>1</sup>](https://leetcode.cn/problems/maximum-subarray)
+
+给你一个整数数组 nums ，请你找出一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
+
+**思路：**
+考虑到需要的是无重复字符的子串，那么说明区间 `[l, r]` 内每个字符只能存在一次。于是可以用哈希表从头到尾记录区间 `[l, r]` 中每一个字符的出现次数。
+
+如果当前字符（也就是下标 `r` 处）出现超过一次，那么说明前面肯定已经出现过，此时只需要不断减少下标 `l` 处字符的计数，同时把 `l` 往后移，直到下标 `r` 处字符的数量重新变为 `1`。这就是滑动窗口的思想。
+
+**Go 代码实现：**
+```go
+func maxSubArray(nums []int) int {
+    ans, sum, pre := math.MinInt, 0, 0;
+    for _, v := range nums {
+        sum += v
+        ans = max(ans, sum - pre)
+        pre = min(pre, sum)
+    }
+    return ans
+}
+```
+
+**C++ 代码实现：**
+```cpp
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        int ans = INT_MIN, sum = 0, pre = 0;
+        for (int i = 0; i < nums.size(); i++) {
+            sum += nums[i];
+            ans = std::max(sum - pre, ans);
+            pre = std::min(pre, sum);
+        }
+        return ans;
+    }
+};
+```
+</details>
+
+<details>
 <summary><strong>[easy] 206. 反转链表</strong></summary>
 
 题目链接：反转链表 [<sup>2</sup>](https://leetcode.cn/problems/reverse-linked-list)
