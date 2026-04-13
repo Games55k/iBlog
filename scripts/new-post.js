@@ -1,4 +1,4 @@
-/* This is a script to create a new post markdown file with front-matter */
+/* This is a script to create a new post with folder + index.md structure */
 
 import fs from "fs"
 import path from "path"
@@ -15,46 +15,35 @@ function getDate() {
 const args = process.argv.slice(2)
 
 if (args.length === 0) {
-  console.error(`Error: No filename argument provided
-Usage: npm run new-post -- <filename>`)
-  process.exit(1) // Terminate the script and return error code 1
-}
-
-let fileName = args[0]
-
-// Add .md extension if not present
-const fileExtensionRegex = /\.(md|mdx)$/i
-if (!fileExtensionRegex.test(fileName)) {
-  fileName += ".md"
-}
-
-const targetDir = "./src/content/posts/"
-const fullPath = path.join(targetDir, fileName)
-
-if (fs.existsSync(fullPath)) {
-  console.error(`Error: File ${fullPath} already exists `)
+  console.error(`Error: No post name argument provided
+Usage: npm run new-post -- <post-name>`)
   process.exit(1)
 }
 
-// recursive mode creates multi-level directories
-const dirPath = path.dirname(fullPath)
-if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true })
+const postName = args[0]
+const postsDir = "./src/content/posts/"
+const postDir = path.join(postsDir, postName)
+
+if (fs.existsSync(postDir)) {
+  console.error(`Error: Directory ${postDir} already exists`)
+  process.exit(1)
 }
 
+fs.mkdirSync(postDir, { recursive: true })
+
 const content = `---
-title: ${args[0]}
+title: ${postName}
 published: ${getDate()}
 description: ''
 image: ''
 tags: []
 category: ''
 pinned: false
-draft: false 
+draft: false
 lang: ''
 ---
 `
 
-fs.writeFileSync(path.join(targetDir, fileName), content)
+fs.writeFileSync(path.join(postDir, "index.md"), content)
 
-console.log(`Post ${fullPath} created`)
+console.log(`Post ${postDir}/index.md created`)

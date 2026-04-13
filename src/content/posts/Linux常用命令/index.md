@@ -1,5 +1,5 @@
 ---
-title: Linux 50个必会命令
+title: Linux 常用命令
 published: 2025-09-17
 description: '常见的五十个 Linux 必会指令'
 image: ''
