@@ -11,7 +11,7 @@ lang: ''
 ---
 
 > 用于记录个人 LeetCode 刷题集合  
-> 目前已收录 3 题
+> 目前已收录 4 题
 
 :::leetcode-list
 :::leetcode{number="3" title="无重复字符的最长子串" difficulty="Mid" tags="滑动窗口"}
@@ -99,6 +99,61 @@ public:
             sum += nums[i];
             ans = std::max(sum - pre, ans);
             pre = std::min(pre, sum);
+        }
+        return ans;
+    }
+};
+```
+:::
+
+:::leetcode{number="128" title="最长连续序列" difficulty="Mid" tags="哈希"}
+
+题目链接：[最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence)
+
+给定一个未排序的整数数组 nums ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。
+
+**思路：**
+因为求的是最长连续的序列，序列不考虑顺序，那么我们可以考虑把数组里的数用哈希表存一下，然后我们去遍历整个哈希表，如果当前遍历的数是 x，那么看 x-1 在不在表里，如果在，就 continue，因为以 x-1 为起点一定比 x 优，如果 x-1 不在，设 y=x+1 一直往后看，直到不存在连续的，此时再更新一下答案，取 (ans, y - x) 的最大值，最后遍历完整个哈希表就得到了答案。
+
+**代码实现：**
+
+:::code-group
+```go
+func longestConsecutive(nums []int) int {
+    mp := make(map[int]bool)
+    for _, v := range nums {
+        mp[v] = true
+    }
+    ans := 0
+    for k := range mp {
+        if mp[k - 1] {
+            continue
+        }
+        x := k + 1
+        for mp[x] {
+            x++
+        }
+        ans = max(ans, x - k)
+    }
+    return ans
+}
+```
+
+```cpp
+class Solution {
+public:
+    int longestConsecutive(vector<int>& nums) {
+        std::unordered_set<int> st(nums.begin(), nums.end());
+        int ans = 0;
+        for (auto &x : st) {
+            if (st.contains(x - 1)) {
+                continue;
+            }
+            int k = x + 1;
+            while (st.contains(k)) {
+                k++;
+            }
+            ans = std::max(ans, k - x);
         }
         return ans;
     }
