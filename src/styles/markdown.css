@@ -157,6 +157,161 @@
         display: none !important;
     }
 
+    .leetcode-list {
+        margin: 1.5rem 0;
+        overflow-x: auto;
+    }
+
+    .leetcode-list-table {
+        min-width: 42rem;
+        overflow: hidden;
+        border: 1px solid var(--btn-regular-bg);
+        border-radius: 1rem;
+        background: color-mix(in oklab, var(--card-bg) 92%, var(--primary) 8%);
+    }
+
+    .leetcode-list-head {
+        display: grid;
+        grid-template-columns: 4.5rem minmax(0, 2.2fr) 7rem minmax(12rem, 1.5fr);
+        gap: 1rem;
+        align-items: center;
+        justify-items: center;
+        padding: 0.95rem 1rem;
+        border-bottom: 1px solid var(--btn-regular-bg);
+        background: color-mix(in oklab, var(--card-bg) 80%, var(--primary) 20%);
+    }
+
+    .leetcode-list-heading {
+        justify-self: center;
+        text-align: center;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--meta-divider);
+    }
+
+    .leetcode-list-body > .leetcode-item:first-child {
+        margin-top: 0;
+    }
+
+    .leetcode-list-body > .leetcode-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .leetcode-list-body > .leetcode-item {
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .leetcode-list-body > .leetcode-item + .leetcode-item {
+        border-top: 1px solid var(--btn-regular-bg);
+    }
+
+    .leetcode-item {
+        margin: 1rem 0;
+        overflow: hidden;
+        border: 1px solid var(--btn-regular-bg);
+        border-radius: 1rem;
+        background: color-mix(in oklab, var(--card-bg) 92%, var(--primary) 8%);
+    }
+
+    .leetcode-item-summary {
+        display: grid;
+        grid-template-columns: 4.5rem minmax(0, 2.2fr) 7rem minmax(12rem, 1.5fr);
+        gap: 1rem;
+        align-items: center;
+        justify-items: center;
+        padding: 0.95rem 1rem;
+        cursor: pointer;
+        list-style: none;
+        transition: background-color 0.2s ease;
+    }
+
+    .leetcode-item-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .leetcode-item-summary:hover {
+        background: color-mix(in oklab, var(--card-bg) 72%, var(--primary) 28%);
+    }
+
+    .leetcode-item-summary:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: -2px;
+        background: color-mix(in oklab, var(--card-bg) 72%, var(--primary) 28%);
+    }
+
+    .leetcode-item[open] .leetcode-item-summary {
+        background: color-mix(in oklab, var(--card-bg) 70%, var(--primary) 30%);
+    }
+
+    .leetcode-item-cell {
+        min-width: 0;
+        text-align: center;
+    }
+
+    .leetcode-item-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 999px;
+        border: 1px solid color-mix(in oklab, var(--primary) 32%, transparent);
+        background: color-mix(in oklab, var(--primary) 12%, var(--card-bg) 88%);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .leetcode-item-title {
+        font-weight: 700;
+        word-break: break-word;
+    }
+
+    .leetcode-item-difficulty {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 5.5rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        line-height: 1;
+        background: var(--btn-regular-bg);
+        color: var(--btn-content);
+    }
+
+    .leetcode-item-difficulty[data-tone="easy"] {
+        background: color-mix(in oklab, #16a34a 15%, var(--card-bg) 85%);
+        color: #15803d;
+    }
+
+    .leetcode-item-difficulty[data-tone="mid"] {
+        background: color-mix(in oklab, #f59e0b 16%, var(--card-bg) 84%);
+        color: #d97706;
+    }
+
+    .leetcode-item-difficulty[data-tone="hard"] {
+        background: color-mix(in oklab, #ef4444 15%, var(--card-bg) 85%);
+        color: #dc2626;
+    }
+
+    .leetcode-item-tags {
+        font-size: 0.9rem;
+        color: var(--btn-content);
+        word-break: break-word;
+    }
+
+    .leetcode-item-content {
+        border-top: 1px solid var(--btn-regular-bg);
+        padding: 0 1rem 1.25rem;
+        background: color-mix(in oklab, var(--card-bg) 96%, var(--primary) 4%);
+    }
+
 
     ul, ol {
         li::marker {

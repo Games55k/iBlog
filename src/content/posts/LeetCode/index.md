@@ -10,12 +10,13 @@ draft: false
 lang: ''
 ---
 
-LeetCode刷题记录
+> 用于记录个人 LeetCode 刷题集合  
+> 目前已收录 3 题
 
-<details>
-<summary><strong>[Middle] 3. 无重复字符的最长子串</strong></summary>
+:::leetcode-list
+:::leetcode{number="3" title="无重复字符的最长子串" difficulty="Mid" tags="滑动窗口"}
 
-题目链接：无重复字符的最长子串 [<sup>1</sup>](https://leetcode.cn/problems/longest-substring-without-repeating-characters)
+题目链接：[无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters)
 
 给定一个字符串 s ，请你找出其中不含有重复字符的最长子串的长度。
 
@@ -62,12 +63,10 @@ public:
 };
 ```
 :::
-</details>
 
-<details>
-<summary><strong>[Middle] 53. 最大子数组和</strong></summary>
+:::leetcode{number="53" title="最大子数组和" difficulty="Mid" tags="前缀和 / 贪心"}
 
-题目链接：53. 最大子数组和[<sup>1</sup>](https://leetcode.cn/problems/maximum-subarray)
+题目链接：[最大子数组和](https://leetcode.cn/problems/maximum-subarray)
 
 给你一个整数数组 nums ，请你找出一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
 
@@ -106,12 +105,10 @@ public:
 };
 ```
 :::
-</details>
 
-<details>
-<summary><strong>[easy] 206. 反转链表</strong></summary>
+:::leetcode{number="206" title="反转链表" difficulty="Easy" tags="链表"}
 
-题目链接：反转链表 [<sup>2</sup>](https://leetcode.cn/problems/reverse-linked-list)
+题目链接：[反转链表](https://leetcode.cn/problems/reverse-linked-list)
 
 给你单链表的头节点 `head` ，请你反转链表，并返回反转后的链表。
 
@@ -168,4 +165,3 @@ public:
 };
 ```
 :::
-</details>
