@@ -24,7 +24,9 @@ LeetCode刷题记录
 
 如果当前字符（也就是下标 `r` 处）出现超过一次，那么说明前面肯定已经出现过，此时只需要不断减少下标 `l` 处字符的计数，同时把 `l` 往后移，直到下标 `r` 处字符的数量重新变为 `1`。这就是滑动窗口的思想。
 
-**Go 代码实现：**
+**代码实现：**
+
+:::code-group
 ```go
 func lengthOfLongestSubstring(s string) int {
     cnt := [128]int{}
@@ -41,7 +43,6 @@ func lengthOfLongestSubstring(s string) int {
 }
 ```
 
-**C++ 代码实现：**
 ```cpp
 class Solution {
 public:
@@ -60,6 +61,7 @@ public:
     }
 };
 ```
+:::
 </details>
 
 <details>
@@ -74,7 +76,9 @@ public:
 
 如果当前字符（也就是下标 `r` 处）出现超过一次，那么说明前面肯定已经出现过，此时只需要不断减少下标 `l` 处字符的计数，同时把 `l` 往后移，直到下标 `r` 处字符的数量重新变为 `1`。这就是滑动窗口的思想。
 
-**Go 代码实现：**
+**代码实现：**
+
+:::code-group
 ```go
 func maxSubArray(nums []int) int {
     ans, sum, pre := math.MinInt, 0, 0;
@@ -87,7 +91,6 @@ func maxSubArray(nums []int) int {
 }
 ```
 
-**C++ 代码实现：**
 ```cpp
 class Solution {
 public:
@@ -102,6 +105,7 @@ public:
     }
 };
 ```
+:::
 </details>
 
 <details>
@@ -114,7 +118,9 @@ public:
 **思路：**
 头插法。简单来说就是创建一个空列表，每次把当前节点插入到空列表的头部。
 
-**Go 代码实现：**
+**代码实现：**
+
+:::code-group
 ```go
 /**
  * Definition for singly-linked list.
@@ -135,7 +141,6 @@ func reverseList(head *ListNode) *ListNode {
 }
 ```
 
-**C++ 代码实现：**
 ```cpp
 /**
  * Definition for singly-linked list.
@@ -162,4 +167,5 @@ public:
     }
 };
 ```
+:::
 </details>

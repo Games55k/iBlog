@@ -40,4 +40,172 @@ document.addEventListener("click", function (e: MouseEvent) {
         target.setAttribute("data-timeout-id", newTimeoutId.toString());
     }
 });
+
+class CodeGroupTabs extends HTMLElement {
+    private tabs: HTMLButtonElement[] = [];
+    private panels: HTMLElement[] = [];
+    private readonly storageKey = "preferred-code-language";
+    private readonly languageLabels: Record<string, string> = {
+        bash: "Bash",
+        c: "C",
+        cpp: "C++",
+        csharp: "C#",
+        cs: "C#",
+        css: "CSS",
+        go: "Go",
+        golang: "Go",
+        html: "HTML",
+        java: "Java",
+        javascript: "JavaScript",
+        js: "JavaScript",
+        json: "JSON",
+        php: "PHP",
+        py: "Python",
+        python: "Python",
+        rs: "Rust",
+        rust: "Rust",
+        sh: "Shell",
+        shell: "Shell",
+        shellsession: "Shell",
+        sql: "SQL",
+        ts: "TypeScript",
+        tsx: "TSX",
+        typescript: "TypeScript",
+        yaml: "YAML",
+        yml: "YAML",
+    };
+
+    connectedCallback() {
+        this.tabs = Array.from(this.querySelectorAll<HTMLButtonElement>(".code-group-tab"));
+        this.panels = Array.from(this.querySelectorAll<HTMLElement>(".code-group-panel"));
+
+        if (this.tabs.length === 0 || this.tabs.length !== this.panels.length) return;
+
+        this.syncLanguages();
+        this.addEventListener("click", this.handleClick);
+        this.addEventListener("keydown", this.handleKeydown);
+
+        let activeIndex = this.tabs.findIndex((tab) => tab.classList.contains("is-active"));
+
+        try {
+            const preferredLanguage = localStorage.getItem(this.storageKey);
+            if (preferredLanguage) {
+                const preferredIndex = this.tabs.findIndex(
+                    (tab) => tab.dataset.language === preferredLanguage
+                );
+                if (preferredIndex >= 0) {
+                    activeIndex = preferredIndex;
+                }
+            }
+        } catch {
+            // Ignore storage access failures.
+        }
+
+        this.activate(activeIndex >= 0 ? activeIndex : 0, false);
+    }
+
+    disconnectedCallback() {
+        this.removeEventListener("click", this.handleClick);
+        this.removeEventListener("keydown", this.handleKeydown);
+    }
+
+    private syncLanguages() {
+        this.tabs.forEach((tab, index) => {
+            const panel = this.panels[index];
+            const actualLanguage = panel
+                ?.querySelector<HTMLElement>("pre[data-language], [data-language]")
+                ?.dataset.language;
+
+            if (!actualLanguage) return;
+
+            tab.dataset.language = actualLanguage;
+            panel.dataset.language = actualLanguage;
+            tab.textContent = this.formatLanguageLabel(actualLanguage);
+        });
+    }
+
+    private formatLanguageLabel(language: string) {
+        const normalized = language.toLowerCase();
+        return this.languageLabels[normalized] || language.toUpperCase();
+    }
+
+    private readonly handleClick = (event: Event) => {
+        const target = event.target as HTMLElement | null;
+        const tab = target?.closest<HTMLButtonElement>(".code-group-tab");
+        if (!tab) return;
+
+        const index = this.tabs.indexOf(tab);
+        if (index >= 0) {
+            this.activate(index);
+        }
+    };
+
+    private readonly handleKeydown = (event: KeyboardEvent) => {
+        const target = event.target as HTMLElement | null;
+        const currentTab = target?.closest<HTMLButtonElement>(".code-group-tab");
+        if (!currentTab) return;
+
+        const currentIndex = this.tabs.indexOf(currentTab);
+        if (currentIndex < 0) return;
+
+        let nextIndex = currentIndex;
+
+        switch (event.key) {
+            case "ArrowRight":
+            case "ArrowDown":
+                nextIndex = (currentIndex + 1) % this.tabs.length;
+                break;
+            case "ArrowLeft":
+            case "ArrowUp":
+                nextIndex = (currentIndex - 1 + this.tabs.length) % this.tabs.length;
+                break;
+            case "Home":
+                nextIndex = 0;
+                break;
+            case "End":
+                nextIndex = this.tabs.length - 1;
+                break;
+            default:
+                return;
+        }
+
+        event.preventDefault();
+        this.activate(nextIndex);
+    };
+
+    private activate(index: number, shouldFocus = true) {
+        const activeTab = this.tabs[index];
+        if (!activeTab) return;
+
+        this.tabs.forEach((tab, tabIndex) => {
+            const isActive = tabIndex === index;
+            tab.classList.toggle("is-active", isActive);
+            tab.setAttribute("aria-selected", String(isActive));
+            tab.tabIndex = isActive ? 0 : -1;
+        });
+
+        this.panels.forEach((panel, panelIndex) => {
+            const isActive = panelIndex === index;
+            panel.classList.toggle("is-active", isActive);
+            panel.hidden = !isActive;
+        });
+
+        if (shouldFocus) {
+            activeTab.focus();
+        }
+
+        const language = activeTab.dataset.language;
+        if (!language) return;
+
+        try {
+            localStorage.setItem(this.storageKey, language);
+        } catch {
+            // Ignore storage access failures.
+        }
+    }
+}
+
+if (!customElements.get("code-group-tabs")) {
+    customElements.define("code-group-tabs", CodeGroupTabs);
+}
 </script>
