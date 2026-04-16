@@ -13,7 +13,11 @@ export function LeetCodeListComponent(properties, children) {
 					"div",
 					{ class: "leetcode-list-head", role: "row" },
 					headingLabels.map((label) =>
-						h("span", { class: "leetcode-list-heading", role: "columnheader" }, label),
+						h(
+							"span",
+							{ class: "leetcode-list-heading", role: "columnheader" },
+							label,
+						),
 					),
 				),
 				h("div", { class: "leetcode-list-body" }, children),
