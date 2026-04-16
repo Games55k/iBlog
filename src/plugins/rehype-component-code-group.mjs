@@ -84,7 +84,7 @@ export function CodeGroupComponent(properties, children) {
 		return h(
 			"div",
 			{ class: "hidden" },
-			'Invalid code-group directive. (code-group directives must contain fenced code blocks.)',
+			"Invalid code-group directive. (code-group directives must contain fenced code blocks.)",
 		);
 	}
 
@@ -106,48 +106,52 @@ export function CodeGroupComponent(properties, children) {
 		};
 	});
 
-	return h("code-group-tabs", { class: "code-group", "data-pagefind-ignore": true }, [
-		h(
-			"div",
-			{
-				class: "code-group-header hide-scrollbar",
-				role: "tablist",
-				"aria-label": properties?.title || "Code examples",
-			},
-			tabs.map((tab) =>
-				h(
-					"button",
-					{
-						type: "button",
-						id: tab.tabId,
-						class: `code-group-tab ${tab.isActive ? "is-active" : ""}`,
-						role: "tab",
-						"aria-controls": tab.panelId,
-						"aria-selected": String(tab.isActive),
-						tabindex: tab.isActive ? "0" : "-1",
-						"data-language": tab.language,
-					},
-					tab.label,
+	return h(
+		"code-group-tabs",
+		{ class: "code-group", "data-pagefind-ignore": true },
+		[
+			h(
+				"div",
+				{
+					class: "code-group-header hide-scrollbar",
+					role: "tablist",
+					"aria-label": properties?.title || "Code examples",
+				},
+				tabs.map((tab) =>
+					h(
+						"button",
+						{
+							type: "button",
+							id: tab.tabId,
+							class: `code-group-tab ${tab.isActive ? "is-active" : ""}`,
+							role: "tab",
+							"aria-controls": tab.panelId,
+							"aria-selected": String(tab.isActive),
+							tabindex: tab.isActive ? "0" : "-1",
+							"data-language": tab.language,
+						},
+						tab.label,
+					),
 				),
 			),
-		),
-		h(
-			"div",
-			{ class: "code-group-body" },
-			tabs.map((tab) =>
-				h(
-					"div",
-					{
-						id: tab.panelId,
-						class: `code-group-panel ${tab.isActive ? "is-active" : ""}`,
-						role: "tabpanel",
-						"aria-labelledby": tab.tabId,
-						"data-language": tab.language,
-						hidden: tab.isActive ? undefined : true,
-					},
-					[tab.child],
+			h(
+				"div",
+				{ class: "code-group-body" },
+				tabs.map((tab) =>
+					h(
+						"div",
+						{
+							id: tab.panelId,
+							class: `code-group-panel ${tab.isActive ? "is-active" : ""}`,
+							role: "tabpanel",
+							"aria-labelledby": tab.tabId,
+							"data-language": tab.language,
+							hidden: tab.isActive ? undefined : true,
+						},
+						[tab.child],
+					),
 				),
 			),
-		),
-	]);
+		],
+	);
 }
