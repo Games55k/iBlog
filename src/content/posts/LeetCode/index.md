@@ -11,7 +11,7 @@ lang: ''
 ---
 
 > 用于记录个人 LeetCode 刷题集合  
-> 目前已收录 5 题
+> 目前已收录 6 题
 
 :::::leetcode-list
 
@@ -57,6 +57,54 @@ public:
                 l++;
             }
             ans = std::max(ans, r - l + 1);
+        }
+        return ans;
+    }
+};
+```
+:::
+
+::::
+
+::::leetcode{number="11" title="盛最多水的容器" difficulty="Mid" tags="双指针"}
+
+题目链接：[盛最多水的容器](https://leetcode.cn/problems/container-with-most-water)
+
+给定一个长度为 n 的整数数组 height 。有 n 条垂线，第 i 条线的两个端点是 (i, 0) 和 (i, height[i]) 。
+
+找出其中的两条线，使得它们与 x 轴共同构成的容器可以容纳最多的水。
+
+返回容器可以储存的最大水量。
+
+**思路：**
+把问题转换一下，其实就是求 $$(r - l) * min(height[l], height[r])$$ 的最大值，那么我们只需要双指针跑一遍，每次移动小的指针，如果我们移动的是大的那个指针，min 会减小，而且长度也在减小，所以乘积也会减小，是不合理的。
+
+**代码实现：**
+
+:::code-group
+```go
+func maxArea(height []int) int {
+    ans, l, r := 0, 0, len(height) - 1
+    for l < r {
+        ans = max(ans, (r - l) * min(height[l], height[r]))
+        if height[l] < height[r] {
+            l++
+        } else {
+            r--
+        }
+    }
+    return ans
+}
+```
+
+```cpp
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int ans = 0, l = 0, r = height.size() - 1;
+        while (l < r) {
+            ans = std::max(ans, (r - l) * std::min(height[l], height[r]));
+            height[l] < height[r] ? l++ : r--;
         }
         return ans;
     }
