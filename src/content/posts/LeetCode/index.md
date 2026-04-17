@@ -11,11 +11,11 @@ lang: ''
 ---
 
 > 用于记录个人 LeetCode 刷题集合  
-> 目前已收录 4 题
+> 目前已收录 5 题
 
-:::leetcode-list
-:::leetcode{number="3" title="无重复字符的最长子串" difficulty="Mid" tags="滑动窗口"}
+:::::leetcode-list
 
+::::leetcode{number="3" title="无重复字符的最长子串" difficulty="Mid" tags="滑动窗口"}
 题目链接：[无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters)
 
 给定一个字符串 s ，请你找出其中不含有重复字符的最长子串的长度。
@@ -64,7 +64,9 @@ public:
 ```
 :::
 
-:::leetcode{number="53" title="最大子数组和" difficulty="Mid" tags="前缀和 / 贪心"}
+::::
+
+::::leetcode{number="53" title="最大子数组和" difficulty="Mid" tags="前缀和 / 贪心"}
 
 题目链接：[最大子数组和](https://leetcode.cn/problems/maximum-subarray)
 
@@ -106,7 +108,9 @@ public:
 ```
 :::
 
-:::leetcode{number="128" title="最长连续序列" difficulty="Mid" tags="哈希"}
+::::
+
+::::leetcode{number="128" title="最长连续序列" difficulty="Mid" tags="哈希"}
 
 题目链接：[最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence)
 
@@ -161,7 +165,9 @@ public:
 ```
 :::
 
-:::leetcode{number="206" title="反转链表" difficulty="Easy" tags="链表"}
+::::
+
+::::leetcode{number="206" title="反转链表" difficulty="Easy" tags="链表"}
 
 题目链接：[反转链表](https://leetcode.cn/problems/reverse-linked-list)
 
@@ -220,3 +226,90 @@ public:
 };
 ```
 :::
+
+::::
+
+::::leetcode{number="283" title="移动零" difficulty="Easy" tags="栈/双指针"}
+
+题目链接：[移动零](https://leetcode.cn/problems/move-zeroes)
+
+给定一个数组 nums，编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序。
+
+方法一：栈的思想
+
+**思路：**
+把nums数组当作一个栈，那么我们只需要遍历一次，每次遇到非 0 的数就加入到 nums 中，遍历完一次后，我们就已经把非 0 的数都移到了前面，剩下的就都是 0 的数，只需要覆盖一下就好了。
+
+**代码实现：**
+
+:::code-group
+```go
+func moveZeroes(nums []int)  {
+    idx := 0
+    for _, v := range nums {
+        if v != 0 {
+            nums[idx] = v
+            idx++
+        }
+    }
+    clear(nums[idx:])
+}
+```
+
+```cpp
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int idx = 0;
+        for (auto &i : nums) {
+            if (i) {
+                nums[idx++] = i;
+            }
+        }
+        fill(nums.begin() + idx, nums.end(), 0);
+    }
+};
+```
+:::
+
+方法二：双指针
+
+**思路：**
+方法一在最坏情况下（即 nums 全为 0）需要遍历两次，那么我们有没有一次的方法呢，有的兄弟有的，直接上双指针。
+
+要保持相对顺序不变，那么我们可以维护一个下标为 l 的最左边的 0，r 为当前遍历到的位置，只要这个数不是 0，那么我们就需要交换，这样才能保持相对位置不改变，交换过后那么 l 的下标也会前进一位，此时就是维护了一个 [l, r] 全为 0 的一个区间，如果前面几位没有碰到 0 呢，那么 l 和 r 会一起前进，直到碰到 0 或者到末尾结束。
+
+**代码实现：**
+
+:::code-group
+```go
+func moveZeroes(nums []int)  {
+    l := 0
+    for r, v := range nums {
+        if v != 0 {
+            nums[l], nums[r] = v, nums[l]
+            l++
+        }
+    }
+}
+```
+
+```cpp
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int l = 0;
+        for (int &r : nums) {
+            if (r != 0) {
+                std::swap(nums[l], r);
+                l++;
+            }
+        }
+    }
+};
+```
+:::
+
+::::
+
+:::::
