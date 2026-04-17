@@ -5,8 +5,6 @@ description: '常见的五十个 Linux 必会指令'
 image: ''
 tags: [Linux]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 ## 📁 一、文件与目录（最常用）

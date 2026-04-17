@@ -5,8 +5,6 @@ description: ''
 image: ''
 tags: [Go, Channel]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 ## 什么是select

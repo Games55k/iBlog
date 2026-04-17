@@ -5,8 +5,6 @@ description: '如何给开源项目的其他分支贡献代码呢'
 image: ''
 tags: [Git]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 假设现在有一个你和别人一起维护的开源项目，它有两个分支，一个是主分支 `main`，一个是开发分支 `dev`，我们想先进行开发测试，不想直接发版到 `main` 分支上，如何进行干净利落的提 PR 贡献自己的代码呢？

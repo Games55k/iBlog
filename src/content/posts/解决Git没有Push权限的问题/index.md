@@ -5,8 +5,6 @@ description: '提供一个解决Git没有Push权限的问题思路'
 image: ''
 tags: [Git]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 前天舍友发现从 VSCode 上 push 半天没有把本地仓库 push 上去，报错差不多如下所示：

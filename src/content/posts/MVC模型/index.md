@@ -5,8 +5,6 @@ description: 'MVC模型（Model-View-Controller）是一种经典的软件架构
 image: ''
 tags: [规范]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 MVC 是一种非常经典的软件架构模式，全称是 **Model–View–Controller（模型-视图-控制器）**，主要用于把应用程序的不同职责分离，让代码更清晰、可维护。

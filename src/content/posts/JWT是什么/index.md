@@ -5,8 +5,6 @@ description: 'Json Web Token'
 image: ''
 tags: [Middleware]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 JWT(Json Web Token) 可以理解成一种**可签名的“身份证明字符串”**，包含三个请求头：

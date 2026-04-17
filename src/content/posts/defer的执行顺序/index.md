@@ -5,8 +5,6 @@ description: ''
 image: ''
 tags: [Go]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 defer 执行顺序与调用顺序相反，类似于栈的先进后出（LIFO），跟在 defer 后面的函数会被延迟执行，直到包含该 defer 语句的函数执行完毕，defer 后面的函数才会被延迟执行，不论包含该 defer 语句的函数是通过 return 正常结束，还是由于 panic 导致的异常退出。

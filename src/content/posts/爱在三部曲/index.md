@@ -5,8 +5,6 @@ description: '爱在黎明破晓前，爱在黄昏日落时，爱在午夜降临
 image: ''
 tags: [Love]
 category: 'Movies'
-draft: false
-lang: ''
 ---
 
 ## 爱在黎明破晓前

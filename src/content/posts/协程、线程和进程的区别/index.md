@@ -5,8 +5,6 @@ description: ''
 image: ''
 tags: [Go]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 `进程(Process)`：是操作系统分配资源的基本单位

@@ -6,8 +6,6 @@ image: './cover.jpg'
 tags: [Plan]
 category: 'Todo'
 pinned: true
-draft: false 
-lang: ''
 ---
 
 ## 旧文章迁移计划正在进行中...

@@ -5,8 +5,6 @@ description: '读写已关闭的 Channel 会发生什么'
 image: ''
 tags: [Go, Channel]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 ## 从一个已关闭的 Channel 仍能读出数据吗?

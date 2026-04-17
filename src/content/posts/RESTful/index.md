@@ -5,8 +5,6 @@ description: 'RESTful 接口规范'
 image: ''
 tags: [规范]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 ## RESTful 是什么

@@ -6,8 +6,6 @@ image: './cover.svg'
 showImage: false
 tags: [LeetCode]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 > 用于记录个人 LeetCode 刷题集合  

@@ -5,8 +5,6 @@ description: ''
 image: ''
 tags: [Go]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 ## 一、GMP 到底是什么？

@@ -5,8 +5,6 @@ description: '基于分治的思想'
 image: ''
 tags: [算法]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 ## 核心思想：分而治之，选一个基准值（Pivot），把数组分成两边，小的放左边，大的放右边，然后继续递归直到有序。

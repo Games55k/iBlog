@@ -5,8 +5,6 @@ description: ''
 image: ''
 tags: [Go]
 category: 'Code'
-draft: false
-lang: ''
 ---
 
 ## 底层原理
