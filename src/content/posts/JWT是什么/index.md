@@ -3,7 +3,7 @@ title: JWT是什么
 published: 2026-03-09
 description: 'Json Web Token'
 image: ''
-tags: [middleware]
+tags: [Middleware]
 category: 'Code'
 draft: false
 lang: ''
