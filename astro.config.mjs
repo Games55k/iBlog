@@ -19,7 +19,6 @@ import { expressiveCodeConfig } from "./src/config.ts";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
 import { CodeGroupComponent } from "./src/plugins/rehype-component-code-group.mjs";
 import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
-import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
 import { LeetCodeComponent } from "./src/plugins/rehype-component-leetcode.mjs";
 import { LeetCodeListComponent } from "./src/plugins/rehype-component-leetcode-list.mjs";
 import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
@@ -123,7 +122,6 @@ export default defineConfig({
 				{
 					components: {
 						"code-group": CodeGroupComponent,
-						github: GithubCardComponent,
 						leetcode: LeetCodeComponent,
 						"leetcode-list": LeetCodeListComponent,
 						note: (x, y) => AdmonitionComponent(x, y, "note"),
