@@ -312,7 +312,6 @@
         background: color-mix(in oklab, var(--card-bg) 96%, var(--primary) 4%);
     }
 
-
     ul, ol {
         li::marker {
             @apply text-[var(--primary)];

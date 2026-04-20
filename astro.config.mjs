@@ -28,7 +28,7 @@ import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-cop
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://blog.sleepwf.dev/",
+	site: "https://blog.sleepwf.dev",
 	base: "/",
 	trailingSlash: "always",
 	integrations: [
@@ -120,11 +120,11 @@ export default defineConfig({
 			[
 				rehypeComponents,
 				{
-					components: {
-						"code-group": CodeGroupComponent,
-						leetcode: LeetCodeComponent,
-						"leetcode-list": LeetCodeListComponent,
-						note: (x, y) => AdmonitionComponent(x, y, "note"),
+						components: {
+							"code-group": CodeGroupComponent,
+							leetcode: LeetCodeComponent,
+							"leetcode-list": LeetCodeListComponent,
+							note: (x, y) => AdmonitionComponent(x, y, "note"),
 						tip: (x, y) => AdmonitionComponent(x, y, "tip"),
 						important: (x, y) => AdmonitionComponent(x, y, "important"),
 						caution: (x, y) => AdmonitionComponent(x, y, "caution"),
