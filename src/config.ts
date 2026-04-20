@@ -8,8 +8,8 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "Home",
-	subtitle: "碎碎念",
+	title: "灰太狼的狼堡",
+	subtitle: "",
 	lang: "zh_CN", // Language code, supports 'en' and 'zh_CN'
 	themeColor: {
 		hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
