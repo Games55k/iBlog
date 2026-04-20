@@ -34,10 +34,10 @@ const emailBody = encodeURIComponent(
 );
 
 const mySite = {
-	name: profileConfig.name,
+	name: siteConfig.title,
 	url: siteUrl,
-	desc: siteConfig.subtitle,
-	avatar: new URL("favicon/proflie.png", siteUrl).href,
+	desc: "大胆去做",
+	avatar: new URL("favicon/profile.png", siteUrl).href,
 };
 
 const siteInfoText = `名称：${mySite.name}
