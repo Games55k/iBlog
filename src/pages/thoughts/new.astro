@@ -1,0 +1,559 @@
+---
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+---
+
+<MainGridLayout title="发布碎碎念" description="在线发布新的碎碎念">
+	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+		<div class="card-base z-10 px-6 py-6 md:px-9 md:py-7 relative w-full">
+			<div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+				<div class="space-y-3">
+					<h1 class="text-3xl font-bold text-90">发布碎碎念</h1>
+					<p class="text-50">记录此刻的想法，支持简易 Markdown 预览</p>
+				</div>
+				<a href="/thoughts/" class="btn-regular inline-flex h-11 items-center rounded-xl px-4 font-bold text-sm shrink-0">
+					返回碎碎念
+				</a>
+			</div>
+
+			<div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+				<section class="rounded-[1.5rem] border border-black/10 bg-black/[0.02] p-5 dark:border-white/10 dark:bg-white/[0.03]">
+					<div class="space-y-5">
+						<div>
+							<label for="api-token" class="mb-2 block text-sm font-semibold text-75">
+								API Token
+							</label>
+							<div class="flex flex-col gap-3 sm:flex-row">
+								<input
+									id="api-token"
+									type="password"
+									placeholder="输入你配置的 THOUGHT_API_TOKEN"
+									class="w-full rounded-xl border border-black/10 bg-[var(--card-bg)] px-4 py-3 text-sm text-90 outline-none transition focus:border-[var(--primary)]/35 dark:border-white/10"
+								/>
+								<button
+									id="save-token-btn"
+									type="button"
+									class="btn-regular inline-flex h-12 items-center justify-center rounded-xl px-4 font-bold text-sm shrink-0"
+								>
+									保存
+								</button>
+							</div>
+							<p class="mt-2 text-sm text-50">
+								Token 只保存在当前浏览器的本地存储中。
+							</p>
+						</div>
+
+						<div>
+							<label for="content" class="mb-2 block text-sm font-semibold text-75">
+								内容
+							</label>
+							<textarea
+								id="content"
+								rows="10"
+								placeholder="写下你此刻的想法..."
+								class="w-full resize-y rounded-[1.25rem] border border-black/10 bg-[var(--card-bg)] px-4 py-3 text-sm leading-7 text-90 outline-none transition focus:border-[var(--primary)]/35 dark:border-white/10"
+							></textarea>
+							<div class="mt-2 flex items-center justify-between text-sm text-50">
+								<span>支持段落、链接、粗体、行内代码和图片语法</span>
+								<span id="char-count">0 字</span>
+							</div>
+						</div>
+
+						<div>
+							<label class="mb-2 block text-sm font-semibold text-75">
+								标签
+							</label>
+							<div id="tags-container" class="flex flex-wrap gap-2">
+								<button type="button" class="tag-btn tag-btn-active" data-tag="日常">日常</button>
+								<button type="button" class="tag-btn tag-btn-inactive" data-tag="技术">技术</button>
+								<button type="button" class="tag-btn tag-btn-inactive" data-tag="心情">心情</button>
+								<button type="button" class="tag-btn tag-btn-inactive" data-tag="想法">想法</button>
+								<button type="button" class="tag-btn tag-btn-inactive" data-tag="记录">记录</button>
+							</div>
+							<input
+								id="custom-tag"
+								type="text"
+								placeholder="自定义标签，按回车添加"
+								class="mt-3 w-full rounded-xl border border-black/10 bg-[var(--card-bg)] px-4 py-3 text-sm text-90 outline-none transition focus:border-[var(--primary)]/35 dark:border-white/10"
+							/>
+						</div>
+
+						<div>
+							<label for="name" class="mb-2 block text-sm font-semibold text-75">
+								文件名标识
+							</label>
+							<input
+								id="name"
+								type="text"
+								placeholder="留空则从首行内容生成"
+								class="w-full rounded-xl border border-black/10 bg-[var(--card-bg)] px-4 py-3 text-sm text-90 outline-none transition focus:border-[var(--primary)]/35 dark:border-white/10"
+							/>
+						</div>
+
+						<button
+							id="submit-btn"
+							type="button"
+							class="inline-flex h-12 w-full items-center justify-center rounded-xl bg-[var(--primary)] px-5 font-bold text-sm text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:text-black/80"
+						>
+							<span id="submit-text">发布碎碎念</span>
+							<span id="submit-loading" class="hidden">发布中...</span>
+						</button>
+					</div>
+				</section>
+
+				<section class="space-y-4">
+					<div class="rounded-[1.5rem] border border-black/10 bg-black/[0.02] p-5 dark:border-white/10 dark:bg-white/[0.03]">
+						<div class="mb-4 flex items-center justify-between gap-3">
+							<h2 class="text-lg font-bold text-90">预览</h2>
+							<span class="text-sm text-50">实时效果</span>
+						</div>
+
+						<div class="preview-shell rounded-[1.25rem] px-5 py-4">
+							<div class="flex flex-wrap items-center gap-2 text-xs font-medium">
+								<div class="h-2 w-2 rounded-full bg-[var(--primary)]/60"></div>
+								<span class="preview-badge">#预览</span>
+								<span class="text-50">刚刚</span>
+								<span class="text-30">·</span>
+								<span class="text-50">周<span id="preview-weekday"></span></span>
+								<span id="preview-tags" class="text-50">#日常</span>
+							</div>
+
+							<div class="preview-body mt-4 pl-5">
+								<article
+									id="preview-content"
+									class="thought-preview text-sm leading-7 text-75"
+								>
+									<p class="text-50 italic">在左侧输入内容开始预览...</p>
+								</article>
+							</div>
+						</div>
+					</div>
+
+					<div
+						id="result-section"
+						class="result-card hidden rounded-[1.5rem] border p-5 text-sm"
+					>
+						<div class="flex items-center gap-3">
+							<div id="result-dot" class="h-2.5 w-2.5 rounded-full bg-[var(--primary)]/70"></div>
+							<p id="result-title" class="font-bold text-90">发布结果</p>
+						</div>
+						<p id="result-message" class="mt-2 text-75"></p>
+						<div id="result-links" class="mt-4 flex flex-wrap gap-3"></div>
+					</div>
+				</section>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
+
+<script>
+function getWeekdayLabel() {
+	const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+	return weekdays[new Date().getDay()] || "";
+}
+
+function parseMarkdown(text: string) {
+	if (!text.trim()) {
+		return '<p class="text-50 italic">在左侧输入内容开始预览...</p>';
+	}
+
+	return text
+		.replace(
+			/!\[([^\]]*)\]\(([^)]+)\)/g,
+			'<img src="$2" alt="$1" class="my-3 max-w-full rounded-2xl" />',
+		)
+		.replace(
+			/\[([^\]]+)\]\(([^)]+)\)/g,
+			'<a href="$2" target="_blank" rel="noreferrer" class="text-[var(--primary)] underline decoration-dashed underline-offset-4">$1</a>',
+		)
+		.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+		.replace(/\*([^*]+)\*/g, "<em>$1</em>")
+		.replace(
+			/`([^`]+)`/g,
+			'<code class="rounded bg-black/5 px-1.5 py-0.5 text-[0.92em] dark:bg-white/10">$1</code>',
+		)
+		.split("\n\n")
+		.map((paragraph) => `<p>${paragraph.replace(/\n/g, "<br>")}</p>`)
+		.join("");
+}
+
+function initThoughtEditor() {
+	const contentField = document.getElementById("content") as HTMLTextAreaElement | null;
+	const nameField = document.getElementById("name") as HTMLInputElement | null;
+	const tokenField = document.getElementById("api-token") as HTMLInputElement | null;
+	const customTagField = document.getElementById("custom-tag") as HTMLInputElement | null;
+	const tagsRoot = document.getElementById("tags-container");
+	const submitButton = document.getElementById("submit-btn") as HTMLButtonElement | null;
+	const submitTextNode = document.getElementById("submit-text");
+	const submitLoadingNode = document.getElementById("submit-loading");
+	const charCountNode = document.getElementById("char-count");
+	const previewContentNode = document.getElementById("preview-content");
+	const previewTagsNode = document.getElementById("preview-tags");
+	const previewWeekdayNode = document.getElementById("preview-weekday");
+	const resultSectionNode = document.getElementById("result-section");
+	const resultDotNode = document.getElementById("result-dot");
+	const resultTitleNode = document.getElementById("result-title");
+	const resultMessageNode = document.getElementById("result-message");
+	const resultLinksNode = document.getElementById("result-links");
+	const saveTokenButton = document.getElementById("save-token-btn");
+
+	if (
+		!contentField ||
+		!nameField ||
+		!tokenField ||
+		!customTagField ||
+		!tagsRoot ||
+		!submitButton ||
+		!submitTextNode ||
+		!submitLoadingNode ||
+		!charCountNode ||
+		!previewContentNode ||
+		!previewTagsNode ||
+		!previewWeekdayNode ||
+		!resultSectionNode ||
+		!resultDotNode ||
+		!resultTitleNode ||
+		!resultMessageNode ||
+		!resultLinksNode ||
+		!saveTokenButton
+	) {
+		return;
+	}
+
+	const contentEl = contentField;
+	const nameEl = nameField;
+	const tokenEl = tokenField;
+	const customTagEl = customTagField;
+	const tagsContainer = tagsRoot;
+	const submitBtn = submitButton;
+	const submitText = submitTextNode;
+	const submitLoading = submitLoadingNode;
+	const charCountEl = charCountNode;
+	const previewContentEl = previewContentNode;
+	const previewTagsEl = previewTagsNode;
+	const previewWeekdayEl = previewWeekdayNode;
+	const resultSection = resultSectionNode;
+	const resultDot = resultDotNode;
+	const resultTitle = resultTitleNode;
+	const resultMessage = resultMessageNode;
+	const resultLinks = resultLinksNode;
+	const saveTokenBtn = saveTokenButton;
+
+	if (tagsContainer.dataset.bound === "true") {
+		return;
+	}
+	tagsContainer.dataset.bound = "true";
+
+	previewWeekdayEl.textContent = getWeekdayLabel();
+
+	const savedToken = localStorage.getItem("thought_api_token");
+	if (savedToken) {
+		tokenEl.value = savedToken;
+	}
+
+	function getSelectedTags() {
+		return Array.from(tagsContainer.querySelectorAll(".tag-btn"))
+			.filter((button) => button.classList.contains("tag-btn-active"))
+			.map((button) => (button as HTMLButtonElement).dataset.tag)
+			.filter((tag): tag is string => Boolean(tag));
+	}
+
+	function updatePreviewTags() {
+		const tags = getSelectedTags();
+		previewTagsEl.textContent = tags.length > 0 ? tags.map((tag) => `#${tag}`).join(" ") : "#日常";
+	}
+
+	function activateTag(button: Element) {
+		button.classList.remove("tag-btn-inactive");
+		button.classList.add("tag-btn-active");
+	}
+
+	function deactivateTag(button: Element) {
+		button.classList.remove("tag-btn-active");
+		button.classList.add("tag-btn-inactive");
+	}
+
+	function showResult(type: "success" | "error", message: string, links = "") {
+		resultSection.classList.remove("hidden", "result-card-success", "result-card-error");
+		resultSection.classList.add(type === "success" ? "result-card-success" : "result-card-error");
+		resultTitle.textContent = type === "success" ? "发布成功" : "发布失败";
+		resultMessage.textContent = message;
+		resultLinks.innerHTML = links;
+		resultLinks.classList.toggle("hidden", links === "");
+		resultDot.classList.toggle("bg-[var(--primary)]/70", type === "success");
+		resultDot.classList.toggle("bg-rose-500/70", type === "error");
+	}
+
+	function getResponseErrorMessage(status: number, text: string) {
+		const trimmed = text.trim();
+		if (!trimmed) {
+			return `请求失败，状态码 ${status}`;
+		}
+
+		if (trimmed.startsWith("<")) {
+			return `接口没有返回 JSON，当前收到的是 HTML 页面（状态码 ${status}）。请检查部署环境里的 /api/add-thought/ 是否可用。`;
+		}
+
+		try {
+			const parsed = JSON.parse(trimmed) as { message?: string };
+			return parsed.message || `请求失败，状态码 ${status}`;
+		} catch {
+			return trimmed.slice(0, 200);
+		}
+	}
+
+	saveTokenBtn.addEventListener("click", () => {
+		localStorage.setItem("thought_api_token", tokenEl.value);
+		saveTokenBtn.textContent = "已保存";
+		window.setTimeout(() => {
+			saveTokenBtn.textContent = "保存";
+		}, 1200);
+	});
+
+	tagsContainer.addEventListener("click", (event) => {
+		const button = (event.target as Element | null)?.closest(".tag-btn");
+		if (!button) {
+			return;
+		}
+
+		if (button.classList.contains("tag-btn-active")) {
+			deactivateTag(button);
+		} else {
+			activateTag(button);
+		}
+
+		updatePreviewTags();
+	});
+
+	customTagEl.addEventListener("keydown", (event) => {
+		if (event.key !== "Enter" || !customTagEl.value.trim()) {
+			return;
+		}
+
+		event.preventDefault();
+		const tag = customTagEl.value.trim();
+		const selector = `[data-tag="${CSS.escape(tag)}"]`;
+		const existingTag = tagsContainer.querySelector(selector);
+
+		if (existingTag) {
+			activateTag(existingTag);
+		} else {
+			const button = document.createElement("button");
+			button.type = "button";
+			button.className = "tag-btn tag-btn-active";
+			button.dataset.tag = tag;
+			button.textContent = tag;
+			tagsContainer.append(button);
+		}
+
+		customTagEl.value = "";
+		updatePreviewTags();
+	});
+
+	contentEl.addEventListener("input", () => {
+		charCountEl.textContent = `${contentEl.value.length} 字`;
+		previewContentEl.innerHTML = parseMarkdown(contentEl.value);
+	});
+
+	submitBtn.addEventListener("click", async () => {
+		const content = contentEl.value.trim();
+		const token = tokenEl.value.trim();
+		const name = nameEl.value.trim();
+		const tags = getSelectedTags();
+
+		if (!token) {
+			alert("请先输入 API Token");
+			tokenEl.focus();
+			return;
+		}
+
+		if (!content) {
+			alert("请输入内容");
+			contentEl.focus();
+			return;
+		}
+
+		submitBtn.disabled = true;
+		submitText.classList.add("hidden");
+		submitLoading.classList.remove("hidden");
+		resultSection.classList.add("hidden");
+
+		try {
+			const response = await fetch("/api/add-thought/", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: "application/json",
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					content,
+					name: name || undefined,
+					tags,
+				}),
+			});
+
+			const responseText = await response.text();
+			type PublishSuccessData = {
+				filename: string;
+				github: {
+					commitUrl: string;
+					fileUrl: string;
+				};
+			};
+			type PublishResponse = {
+				success?: boolean;
+				data?: PublishSuccessData;
+				message?: string;
+			};
+			let data: PublishResponse | null = null;
+
+			if (responseText.trim()) {
+				try {
+					data = JSON.parse(responseText);
+				} catch {
+					data = null;
+				}
+			}
+
+			if (response.ok && data?.success && data.data) {
+				const publishData = data.data;
+				showResult(
+					"success",
+					`碎碎念已创建：${publishData.filename}`,
+					`
+					<a href="${publishData.github.commitUrl}" target="_blank" rel="noreferrer" class="btn-regular inline-flex h-10 items-center rounded-xl px-4 font-bold text-sm">查看 Commit</a>
+					<a href="${publishData.github.fileUrl}" target="_blank" rel="noreferrer" class="btn-plain inline-flex h-10 items-center rounded-xl px-4 font-bold text-sm">查看文件</a>
+					<a href="/thoughts/" class="btn-plain inline-flex h-10 items-center rounded-xl px-4 font-bold text-sm">前往碎碎念</a>
+				`,
+				);
+				contentEl.value = "";
+				nameEl.value = "";
+				charCountEl.textContent = "0 字";
+				previewContentEl.innerHTML = '<p class="text-50 italic">在左侧输入内容开始预览...</p>';
+			} else {
+				showResult(
+					"error",
+					data?.message || getResponseErrorMessage(response.status, responseText),
+				);
+			}
+		} catch (error) {
+			showResult("error", error instanceof Error ? error.message : "网络错误");
+		} finally {
+			submitBtn.disabled = false;
+			submitText.classList.remove("hidden");
+			submitLoading.classList.add("hidden");
+		}
+	});
+
+	updatePreviewTags();
+}
+
+initThoughtEditor();
+document.addEventListener("astro:after-swap", initThoughtEditor);
+</script>
+
+<style>
+	.preview-badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklab, #14b8a6 24%, transparent);
+		background: color-mix(in oklab, #14b8a6 14%, transparent);
+		color: #0f766e;
+		padding: 0.2rem 0.55rem;
+		line-height: 1.1;
+	}
+
+	:global(.dark) .preview-badge {
+		color: #5eead4;
+	}
+
+	.preview-shell {
+		background: color-mix(in oklab, var(--card-bg) 92%, var(--primary) 8%);
+	}
+
+	.preview-body {
+		border-left: 2px solid rgb(0 0 0 / 0.08);
+	}
+
+	:global(.dark) .preview-body {
+		border-left-color: rgb(255 255 255 / 0.12);
+	}
+
+	.tag-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 999px;
+		padding: 0.45rem 0.9rem;
+		font-size: 0.8rem;
+		font-weight: 700;
+		transition: 150ms ease;
+	}
+
+	.tag-btn-active {
+		border: 1px solid color-mix(in oklab, var(--primary) 18%, transparent);
+		background: color-mix(in oklab, var(--primary) 16%, transparent);
+		color: var(--primary);
+	}
+
+	.tag-btn-inactive {
+		border: 1px solid rgb(0 0 0 / 0.1);
+		background: transparent;
+		color: rgb(0 0 0 / 0.6);
+	}
+
+	.tag-btn-inactive:hover {
+		border-color: rgb(0 0 0 / 0.18);
+		background: rgb(0 0 0 / 0.04);
+	}
+
+	:global(.dark) .tag-btn-inactive {
+		border-color: rgb(255 255 255 / 0.1);
+		color: rgb(255 255 255 / 0.65);
+	}
+
+	:global(.dark) .tag-btn-inactive:hover {
+		border-color: rgb(255 255 255 / 0.2);
+		background: rgb(255 255 255 / 0.05);
+	}
+
+	.thought-preview :global(p) {
+		margin: 0.75rem 0;
+	}
+
+	.thought-preview :global(img) {
+		display: block;
+	}
+
+	.result-card {
+		border-color: rgb(0 0 0 / 0.1);
+		background: rgb(0 0 0 / 0.02);
+	}
+
+	.result-card-success {
+		border-color: color-mix(in oklab, var(--primary) 18%, transparent);
+		background: color-mix(in oklab, var(--primary) 8%, transparent);
+	}
+
+	.result-card-error {
+		border-color: rgb(244 63 94 / 0.2);
+		background: rgb(244 63 94 / 0.07);
+	}
+
+	:global(.dark) .result-card {
+		border-color: rgb(255 255 255 / 0.1);
+		background: rgb(255 255 255 / 0.03);
+	}
+
+	:global(.dark) .result-card-success {
+		border-color: color-mix(in oklab, var(--primary) 24%, transparent);
+		background: color-mix(in oklab, var(--primary) 10%, transparent);
+	}
+
+	:global(.dark) .result-card-error {
+		border-color: rgb(244 63 94 / 0.28);
+		background: rgb(244 63 94 / 0.12);
+	}
+</style>

@@ -1,0 +1,289 @@
+---
+import { type CollectionEntry, render } from "astro:content";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { getSortedThoughts } from "@utils/content-utils";
+import {
+	formatDateToYYYYMMDDLocal,
+	getWeekday,
+	timeAgo,
+} from "@utils/date-utils";
+
+const collection = await getSortedThoughts();
+
+const thoughts = await Promise.all(
+	collection.map(async (entry: CollectionEntry<"thoughts">, index: number) => {
+		const { Content } = await render(entry);
+		const thoughtId = collection.length - index;
+		const hours = String(entry.data.published.getHours()).padStart(2, "0");
+		const minutes = String(entry.data.published.getMinutes()).padStart(2, "0");
+		return {
+			...entry,
+			Content,
+			thoughtId,
+			dateStr: formatDateToYYYYMMDDLocal(entry.data.published),
+			timeStr: `${hours}:${minutes}`,
+		};
+	}),
+);
+---
+
+<MainGridLayout title="碎碎念" description="日常随想与生活点滴">
+	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+		<div class="card-base z-10 px-6 py-6 md:px-9 md:py-7 relative w-full">
+			<div class="space-y-3">
+				<h1 class="text-3xl font-bold text-90">碎碎念</h1>
+				<p class="text-50">共 {collection.length} 条碎碎念</p>
+			</div>
+
+			{thoughts.length === 0 ? (
+				<div class="mt-8 rounded-2xl border border-dashed border-black/10 dark:border-white/15 px-6 py-10 text-center text-50">
+					还没有碎碎念，先写下第一条吧。
+				</div>
+			) : (
+				<ul class="mt-8 flex flex-col space-y-0">
+					{thoughts.map((entry) => (
+						<li
+							id={`${entry.thoughtId}`}
+							class="thought-item scroll-mt-24 border-b last:border-b-0 border-black/10 dark:border-white/10"
+						>
+							<div class="flex flex-wrap items-center gap-2 py-2 text-xs font-medium">
+								<div class="h-2 w-2 rounded-full bg-[var(--primary)]/60" />
+								<a
+									href={`#${entry.thoughtId}`}
+									class="thought-anchor thought-badge font-semibold transition"
+									data-thought-id={entry.thoughtId}
+									title="复制链接"
+								>
+									#{entry.thoughtId}
+								</a>
+								<span class="text-30">·</span>
+								<span
+									class="text-50 thought-timeago"
+									data-timestamp={entry.data.published.getTime()}
+								>
+									{timeAgo(entry.data.published)}
+								</span>
+								<span class="hidden sm:inline text-30">·</span>
+								<span class="hidden sm:inline text-50">
+									{getWeekday(entry.data.published)}
+								</span>
+								<span class="text-30">·</span>
+								<span class="font-mono text-50">
+									{entry.dateStr}
+									<span class="ml-1 text-30">{entry.timeStr}</span>
+								</span>
+								{entry.data.tags.length > 0 && (
+									<>
+										<span class="hidden sm:inline text-30">·</span>
+										<span class="hidden sm:inline text-50">
+											{entry.data.tags.map((tag: string) => `#${tag}`).join(" ")}
+										</span>
+									</>
+								)}
+							</div>
+
+							<div class="mb-4 ml-0.5 py-3 sm:pl-6 sm:border-l-2 sm:border-black/10 sm:dark:border-white/15">
+								<article class="thought-content text-[0.95rem] leading-7 text-75 [&_p]:my-3 [&_img]:my-3 [&_img]:mr-auto [&_img]:ml-0 [&_img]:max-w-60 [&_img]:rounded-xl [&_a]:text-[var(--primary)] [&_a]:underline [&_a]:decoration-dashed [&_a]:underline-offset-4 sm:[&_img]:max-w-sm">
+									<entry.Content />
+								</article>
+							</div>
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
+	</div>
+
+	<div
+		id="thought-copy-toast"
+		class="pointer-events-none fixed bottom-8 left-1/2 z-50 -translate-x-1/2 transform opacity-0 transition-all duration-300"
+	>
+		<div class="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm text-white dark:text-black/80 shadow-lg">
+			链接已复制
+		</div>
+	</div>
+</MainGridLayout>
+
+<script>
+function updateThoughtTimeAgo() {
+    document.querySelectorAll(".thought-timeago").forEach((element) => {
+        const timestamp = Number((element as HTMLElement).dataset.timestamp);
+        if (!timestamp) return;
+
+        const secondsAgo = Math.floor((Date.now() - timestamp) / 1000);
+        let text = "刚刚";
+
+        if (secondsAgo >= 60) {
+            const minutesAgo = Math.floor(secondsAgo / 60);
+            if (minutesAgo < 60) {
+                text = `${minutesAgo} 分钟前`;
+            } else {
+                const hoursAgo = Math.floor(minutesAgo / 60);
+                if (hoursAgo < 24) {
+                    text = `${hoursAgo} 小时前`;
+                } else {
+                    const daysAgo = Math.floor(hoursAgo / 24);
+                    if (daysAgo < 30) {
+                        text = `${daysAgo} 天前`;
+                    } else {
+                        const monthsAgo = Math.floor(daysAgo / 30);
+                        if (monthsAgo < 12) {
+                            text = `${monthsAgo} 个月前`;
+                        } else {
+                            text = `${Math.floor(monthsAgo / 12)} 年前`;
+                        }
+                    }
+                }
+            }
+        }
+
+        element.textContent = text;
+    });
+}
+
+function showThoughtToast() {
+    const toast = document.getElementById("thought-copy-toast");
+    if (!toast) return;
+    toast.classList.remove("opacity-0");
+    toast.classList.add("opacity-100");
+    window.setTimeout(() => {
+        toast.classList.remove("opacity-100");
+        toast.classList.add("opacity-0");
+    }, 2000);
+}
+
+function setupThoughtAnchors() {
+    document.querySelectorAll(".thought-anchor").forEach((anchor) => {
+        if ((anchor as HTMLElement).dataset.bound === "true") return;
+        (anchor as HTMLElement).dataset.bound = "true";
+
+        anchor.addEventListener("click", async (event) => {
+            event.preventDefault();
+            const thoughtId = (anchor as HTMLElement).dataset.thoughtId;
+            if (!thoughtId) return;
+
+            const thoughtUrl = `${window.location.origin}${window.location.pathname}#${thoughtId}`;
+
+            try {
+                await navigator.clipboard.writeText(thoughtUrl);
+                showThoughtToast();
+            } catch {}
+
+            history.pushState(null, "", `#${thoughtId}`);
+
+            const target = document.getElementById(thoughtId);
+            if (!target) return;
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+            target.classList.add("highlight-thought");
+            window.setTimeout(() => {
+                target.classList.remove("highlight-thought");
+            }, 2000);
+        });
+    });
+}
+
+function highlightCurrentThought() {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const target = document.getElementById(hash);
+    if (!target) return;
+    target.classList.add("highlight-thought");
+    window.setTimeout(() => {
+        target.classList.remove("highlight-thought");
+    }, 2000);
+}
+
+function initThoughtsPage() {
+    updateThoughtTimeAgo();
+    setupThoughtAnchors();
+    highlightCurrentThought();
+}
+
+initThoughtsPage();
+document.addEventListener("astro:after-swap", initThoughtsPage);
+</script>
+
+<style>
+	.thought-badge {
+		border: 1px solid var(--thought-badge-border, color-mix(in oklab, var(--primary) 14%, transparent));
+		background: var(--thought-badge-bg, color-mix(in oklab, var(--primary) 10%, transparent));
+		color: var(--thought-badge-text, var(--primary));
+		border-radius: 999px;
+		padding: 0.2rem 0.55rem;
+		line-height: 1.1;
+	}
+
+	.thought-anchor:hover {
+		border-color: var(--thought-badge-border, color-mix(in oklab, var(--primary) 18%, transparent));
+		background: var(--thought-badge-bg-hover, color-mix(in oklab, var(--primary) 14%, transparent));
+		color: var(--thought-badge-text, var(--primary));
+	}
+
+	.thought-item:nth-child(5n + 1) {
+		--thought-badge-bg: color-mix(in oklab, #f97316 14%, transparent);
+		--thought-badge-bg-hover: color-mix(in oklab, #f97316 20%, transparent);
+		--thought-badge-border: color-mix(in oklab, #f97316 26%, transparent);
+		--thought-badge-text: #ea580c;
+	}
+
+	.thought-item:nth-child(5n + 2) {
+		--thought-badge-bg: color-mix(in oklab, #14b8a6 14%, transparent);
+		--thought-badge-bg-hover: color-mix(in oklab, #14b8a6 20%, transparent);
+		--thought-badge-border: color-mix(in oklab, #14b8a6 24%, transparent);
+		--thought-badge-text: #0f766e;
+	}
+
+	.thought-item:nth-child(5n + 3) {
+		--thought-badge-bg: color-mix(in oklab, #eab308 16%, transparent);
+		--thought-badge-bg-hover: color-mix(in oklab, #eab308 22%, transparent);
+		--thought-badge-border: color-mix(in oklab, #eab308 26%, transparent);
+		--thought-badge-text: #a16207;
+	}
+
+	.thought-item:nth-child(5n + 4) {
+		--thought-badge-bg: color-mix(in oklab, #22c55e 14%, transparent);
+		--thought-badge-bg-hover: color-mix(in oklab, #22c55e 20%, transparent);
+		--thought-badge-border: color-mix(in oklab, #22c55e 24%, transparent);
+		--thought-badge-text: #15803d;
+	}
+
+	.thought-item:nth-child(5n) {
+		--thought-badge-bg: color-mix(in oklab, #ec4899 13%, transparent);
+		--thought-badge-bg-hover: color-mix(in oklab, #ec4899 18%, transparent);
+		--thought-badge-border: color-mix(in oklab, #ec4899 24%, transparent);
+		--thought-badge-text: #be185d;
+	}
+
+	:global(.dark) .thought-item:nth-child(5n + 1) {
+		--thought-badge-text: #fdba74;
+	}
+
+	:global(.dark) .thought-item:nth-child(5n + 2) {
+		--thought-badge-text: #5eead4;
+	}
+
+	:global(.dark) .thought-item:nth-child(5n + 3) {
+		--thought-badge-text: #fde047;
+	}
+
+	:global(.dark) .thought-item:nth-child(5n + 4) {
+		--thought-badge-text: #86efac;
+	}
+
+	:global(.dark) .thought-item:nth-child(5n) {
+		--thought-badge-text: #f9a8d4;
+	}
+
+	.highlight-thought {
+		animation: highlightThought 2s ease-out;
+	}
+
+	@keyframes highlightThought {
+		0% {
+			background: color-mix(in oklab, var(--primary) 12%, transparent);
+		}
+		100% {
+			background: transparent;
+		}
+	}
+</style>
