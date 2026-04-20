@@ -1,12 +1,33 @@
 ---
-import type { CollectionEntry } from "astro:content";
-import { getPostUrlBySlug } from "@utils/url-utils";
+import { type CollectionEntry, render } from "astro:content";
+import { NUM_THOUGHTS_ON_HOMEPAGE } from "@constants/constants";
+import { getSortedThoughts } from "@utils/content-utils";
+import { formatDateToYYYYMMDDLocal, timeAgo } from "@utils/date-utils";
+import { getPostSlugFromId, getPostUrlBySlug } from "@utils/url-utils";
 import PostCard from "./PostCard.astro";
 
 const { page } = Astro.props;
 
 let delay = 0;
 const interval = 50;
+
+const recentThoughtsCollection =
+	page.currentPage === 1 ? await getSortedThoughts() : [];
+
+const recentThoughts = await Promise.all(
+	recentThoughtsCollection
+		.slice(0, NUM_THOUGHTS_ON_HOMEPAGE)
+		.map(async (entry: CollectionEntry<"thoughts">, index: number) => {
+			const { Content } = await render(entry);
+			const thoughtId = recentThoughtsCollection.length - index;
+			return {
+				...entry,
+				Content,
+				thoughtId,
+				dateStr: formatDateToYYYYMMDDLocal(entry.data.published),
+			};
+		}),
+);
 ---
 <div class="transition flex flex-col rounded-[var(--radius-large)] bg-[var(--card-bg)] py-1 md:py-0 md:bg-transparent md:gap-4 mb-4">
     {page.data.map((entry: CollectionEntry<"posts">) => (
@@ -17,7 +38,7 @@ const interval = 50;
                 category={entry.data.category}
                 published={entry.data.published}
                 updated={entry.data.updated}
-                url={getPostUrlBySlug(entry.slug)}
+                url={getPostUrlBySlug(getPostSlugFromId(entry.id))}
                 image={entry.data.image}
                 description={entry.data.description}
                 draft={entry.data.draft}
@@ -25,4 +46,139 @@ const interval = 50;
                 style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
         ></PostCard>
     ))}
+
+    {page.currentPage === 1 && recentThoughts.length > 0 && (
+        <section class="card-base onload-animation px-6 md:px-9 py-6 mt-2" style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}>
+            <div class="flex items-center justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-2xl font-bold text-90">最近碎碎念</h2>
+                    <p class="text-50 text-sm mt-1">一些短内容和即时记录</p>
+                </div>
+                <a href="/thoughts/" class="btn-regular rounded-lg px-4 h-10 shrink-0 font-bold text-sm">
+                    查看全部
+                </a>
+            </div>
+            <div class="flex flex-col gap-3">
+                {recentThoughts.map((entry) => (
+                    <a
+                        href={`/thoughts/#${entry.thoughtId}`}
+                        class="group rounded-xl border border-black/8 dark:border-white/10 bg-[var(--btn-regular-bg)]/45 hover:bg-[var(--btn-regular-bg-hover)]/55 transition px-4 py-3"
+                    >
+                        <div class="flex flex-wrap items-center gap-2 text-xs mb-2.5">
+                            <span class="thought-badge inline-flex items-center justify-center rounded-full px-2 py-0.5 font-bold">
+                                #{entry.thoughtId}
+                            </span>
+                            <span class="text-50 thought-timeago" data-timestamp={entry.data.published.getTime()}>
+                                {timeAgo(entry.data.published)}
+                            </span>
+                            <span class="text-30">·</span>
+                            <span class="font-mono text-50">{entry.dateStr}</span>
+                        </div>
+                        <div class="thought-home-content text-sm text-75 line-clamp-2 [&_p]:my-0 [&_img]:hidden [&_a]:text-[var(--primary)] [&_a]:underline [&_a]:decoration-dashed [&_a]:underline-offset-4">
+                            <entry.Content />
+                        </div>
+                    </a>
+                ))}
+            </div>
+        </section>
+    )}
 </div>
+
+<script>
+function updateThoughtTimeAgo() {
+    document.querySelectorAll(".thought-timeago").forEach((element) => {
+        const timestamp = Number((element as HTMLElement).dataset.timestamp);
+        if (!timestamp) return;
+
+        const secondsAgo = Math.floor((Date.now() - timestamp) / 1000);
+        let text = "刚刚";
+
+        if (secondsAgo >= 60) {
+            const minutesAgo = Math.floor(secondsAgo / 60);
+            if (minutesAgo < 60) {
+                text = `${minutesAgo} 分钟前`;
+            } else {
+                const hoursAgo = Math.floor(minutesAgo / 60);
+                if (hoursAgo < 24) {
+                    text = `${hoursAgo} 小时前`;
+                } else {
+                    const daysAgo = Math.floor(hoursAgo / 24);
+                    if (daysAgo < 30) {
+                        text = `${daysAgo} 天前`;
+                    } else {
+                        const monthsAgo = Math.floor(daysAgo / 30);
+                        if (monthsAgo < 12) {
+                            text = `${monthsAgo} 个月前`;
+                        } else {
+                            text = `${Math.floor(monthsAgo / 12)} 年前`;
+                        }
+                    }
+                }
+            }
+        }
+
+        element.textContent = text;
+    });
+}
+
+updateThoughtTimeAgo();
+document.addEventListener("astro:after-swap", updateThoughtTimeAgo);
+</script>
+
+<style>
+	section :global(.group:nth-child(5n + 1)) {
+		--thought-badge-bg: color-mix(in oklab, #f97316 14%, transparent);
+		--thought-badge-border: color-mix(in oklab, #f97316 26%, transparent);
+		--thought-badge-text: #ea580c;
+	}
+
+	section :global(.group:nth-child(5n + 2)) {
+		--thought-badge-bg: color-mix(in oklab, #14b8a6 14%, transparent);
+		--thought-badge-border: color-mix(in oklab, #14b8a6 24%, transparent);
+		--thought-badge-text: #0f766e;
+	}
+
+	section :global(.group:nth-child(5n + 3)) {
+		--thought-badge-bg: color-mix(in oklab, #eab308 16%, transparent);
+		--thought-badge-border: color-mix(in oklab, #eab308 26%, transparent);
+		--thought-badge-text: #a16207;
+	}
+
+	section :global(.group:nth-child(5n + 4)) {
+		--thought-badge-bg: color-mix(in oklab, #22c55e 14%, transparent);
+		--thought-badge-border: color-mix(in oklab, #22c55e 24%, transparent);
+		--thought-badge-text: #15803d;
+	}
+
+	section :global(.group:nth-child(5n)) {
+		--thought-badge-bg: color-mix(in oklab, #ec4899 13%, transparent);
+		--thought-badge-border: color-mix(in oklab, #ec4899 24%, transparent);
+		--thought-badge-text: #be185d;
+	}
+
+	.thought-badge {
+		background: var(--thought-badge-bg, color-mix(in oklab, var(--primary) 10%, transparent));
+		border: 1px solid var(--thought-badge-border, color-mix(in oklab, var(--primary) 14%, transparent));
+		color: var(--thought-badge-text, var(--primary));
+	}
+
+	:global(.dark) section :global(.group:nth-child(5n + 1)) {
+		--thought-badge-text: #fdba74;
+	}
+
+	:global(.dark) section :global(.group:nth-child(5n + 2)) {
+		--thought-badge-text: #5eead4;
+	}
+
+	:global(.dark) section :global(.group:nth-child(5n + 3)) {
+		--thought-badge-text: #fde047;
+	}
+
+	:global(.dark) section :global(.group:nth-child(5n + 4)) {
+		--thought-badge-text: #86efac;
+	}
+
+	:global(.dark) section :global(.group:nth-child(5n)) {
+		--thought-badge-text: #f9a8d4;
+	}
+</style>

@@ -12,6 +12,14 @@ function joinUrl(...parts: string[]): string {
 	return joined.replace(/\/+/g, "/");
 }
 
+export function getPostSlugFromId(id: string): string {
+	if (id === "index") {
+		return "";
+	}
+
+	return id.replace(/\/index$/, "");
+}
+
 export function getPostUrlBySlug(slug: string): string {
 	return url(`/posts/${slug}/`);
 }
@@ -37,6 +45,14 @@ export function getDir(path: string): string {
 		return "/";
 	}
 	return path.substring(0, lastSlashIndex + 1);
+}
+
+export function getAssetBasePath(filePath?: string): string {
+	if (!filePath) {
+		return "/";
+	}
+
+	return getDir(filePath.replace(/^src\//, ""));
 }
 
 export function url(path: string) {
