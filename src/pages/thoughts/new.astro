@@ -393,7 +393,19 @@ function initThoughtEditor() {
 			});
 
 			const responseText = await response.text();
-			let data: { success?: boolean; data?: { filename: string; github: { commitUrl: string; fileUrl: string } }; message?: string } | null = null;
+			type PublishSuccessData = {
+				filename: string;
+				github: {
+					commitUrl: string;
+					fileUrl: string;
+				};
+			};
+			type PublishResponse = {
+				success?: boolean;
+				data?: PublishSuccessData;
+				message?: string;
+			};
+			let data: PublishResponse | null = null;
 
 			if (responseText.trim()) {
 				try {
@@ -403,13 +415,14 @@ function initThoughtEditor() {
 				}
 			}
 
-			if (response.ok && data?.success) {
+			if (response.ok && data?.success && data.data) {
+				const publishData = data.data;
 				showResult(
 					"success",
-					`碎碎念已创建：${data.data.filename}`,
+					`碎碎念已创建：${publishData.filename}`,
 					`
-					<a href="${data.data.github.commitUrl}" target="_blank" rel="noreferrer" class="btn-regular inline-flex h-10 items-center rounded-xl px-4 font-bold text-sm">查看 Commit</a>
-					<a href="${data.data.github.fileUrl}" target="_blank" rel="noreferrer" class="btn-plain inline-flex h-10 items-center rounded-xl px-4 font-bold text-sm">查看文件</a>
+					<a href="${publishData.github.commitUrl}" target="_blank" rel="noreferrer" class="btn-regular inline-flex h-10 items-center rounded-xl px-4 font-bold text-sm">查看 Commit</a>
+					<a href="${publishData.github.fileUrl}" target="_blank" rel="noreferrer" class="btn-plain inline-flex h-10 items-center rounded-xl px-4 font-bold text-sm">查看文件</a>
 					<a href="/thoughts/" class="btn-plain inline-flex h-10 items-center rounded-xl px-4 font-bold text-sm">前往碎碎念</a>
 				`,
 				);
