@@ -3,8 +3,9 @@ import { type CollectionEntry, render } from "astro:content";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedThoughts } from "@utils/content-utils";
 import {
-	formatDateToYYYYMMDDLocal,
-	getWeekday,
+	formatDateToYYYYMMDDInShanghai,
+	formatTimeToHHMMInShanghai,
+	getWeekdayInShanghai,
 	timeAgo,
 } from "@utils/date-utils";
 
@@ -14,14 +15,12 @@ const thoughts = await Promise.all(
 	collection.map(async (entry: CollectionEntry<"thoughts">, index: number) => {
 		const { Content } = await render(entry);
 		const thoughtId = collection.length - index;
-		const hours = String(entry.data.published.getHours()).padStart(2, "0");
-		const minutes = String(entry.data.published.getMinutes()).padStart(2, "0");
 		return {
 			...entry,
 			Content,
 			thoughtId,
-			dateStr: formatDateToYYYYMMDDLocal(entry.data.published),
-			timeStr: `${hours}:${minutes}`,
+			dateStr: formatDateToYYYYMMDDInShanghai(entry.data.published),
+			timeStr: formatTimeToHHMMInShanghai(entry.data.published),
 		};
 	}),
 );
@@ -65,7 +64,7 @@ const thoughts = await Promise.all(
 								</span>
 								<span class="hidden sm:inline text-30">·</span>
 								<span class="hidden sm:inline text-50">
-									{getWeekday(entry.data.published)}
+									{getWeekdayInShanghai(entry.data.published)}
 								</span>
 								<span class="text-30">·</span>
 								<span class="font-mono text-50">

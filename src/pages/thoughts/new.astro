@@ -77,18 +77,6 @@ import MainGridLayout from "@layouts/MainGridLayout.astro";
 							/>
 						</div>
 
-						<div>
-							<label for="name" class="mb-2 block text-sm font-semibold text-75">
-								文件名标识
-							</label>
-							<input
-								id="name"
-								type="text"
-								placeholder="留空则从首行内容生成"
-								class="w-full rounded-xl border border-black/10 bg-[var(--card-bg)] px-4 py-3 text-sm text-90 outline-none transition focus:border-[var(--primary)]/35 dark:border-white/10"
-							/>
-						</div>
-
 						<button
 							id="submit-btn"
 							type="button"
@@ -178,7 +166,6 @@ function parseMarkdown(text: string) {
 
 function initThoughtEditor() {
 	const contentField = document.getElementById("content") as HTMLTextAreaElement | null;
-	const nameField = document.getElementById("name") as HTMLInputElement | null;
 	const tokenField = document.getElementById("api-token") as HTMLInputElement | null;
 	const customTagField = document.getElementById("custom-tag") as HTMLInputElement | null;
 	const tagsRoot = document.getElementById("tags-container");
@@ -198,7 +185,6 @@ function initThoughtEditor() {
 
 	if (
 		!contentField ||
-		!nameField ||
 		!tokenField ||
 		!customTagField ||
 		!tagsRoot ||
@@ -220,7 +206,6 @@ function initThoughtEditor() {
 	}
 
 	const contentEl = contentField;
-	const nameEl = nameField;
 	const tokenEl = tokenField;
 	const customTagEl = customTagField;
 	const tagsContainer = tagsRoot;
@@ -357,7 +342,6 @@ function initThoughtEditor() {
 	submitBtn.addEventListener("click", async () => {
 		const content = contentEl.value.trim();
 		const token = tokenEl.value.trim();
-		const name = nameEl.value.trim();
 		const tags = getSelectedTags();
 
 		if (!token) {
@@ -387,7 +371,6 @@ function initThoughtEditor() {
 				},
 				body: JSON.stringify({
 					content,
-					name: name || undefined,
 					tags,
 				}),
 			});
@@ -427,7 +410,6 @@ function initThoughtEditor() {
 				`,
 				);
 				contentEl.value = "";
-				nameEl.value = "";
 				charCountEl.textContent = "0 字";
 				previewContentEl.innerHTML = '<p class="text-50 italic">在左侧输入内容开始预览...</p>';
 			} else {

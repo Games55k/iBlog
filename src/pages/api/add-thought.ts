@@ -6,7 +6,6 @@ export const prerender = false;
 type AddThoughtPayload = {
 	content?: string;
 	tags?: string[];
-	name?: string;
 };
 
 const DEFAULT_BRANCH = "main";
@@ -41,39 +40,6 @@ function getBearerToken(header: string | null) {
 
 function normalizeTag(tag: string) {
 	return tag.trim().replace(/^#+/, "").slice(0, 20);
-}
-
-function sanitizeFilenamePart(value: string) {
-	return value
-		.normalize("NFKC")
-		.trim()
-		.replace(/[<>:"/\\|?*]/g, " ")
-		.replace(/\s+/g, "-")
-		.replace(/-+/g, "-")
-		.replace(/^-|-$/g, "")
-		.slice(0, 48);
-}
-
-function extractFilenameSeed(content: string, customName?: string) {
-	const preferred = customName?.trim();
-	if (preferred) {
-		return sanitizeFilenamePart(preferred);
-	}
-
-	const firstLine = content
-		.split("\n")
-		.map((line) => line.trim())
-		.find(Boolean);
-
-	if (!firstLine) {
-		return "thought";
-	}
-
-	return (
-		sanitizeFilenamePart(
-			firstLine.replace(/^#+\s*/, "").replace(/[*_~`[\]()!]/g, ""),
-		) || "thought"
-	);
 }
 
 function buildFrontmatterContent(
@@ -187,8 +153,8 @@ export const POST: APIRoute = async ({ request }) => {
 	const now = new Date();
 	const datePrefix = now.toISOString().slice(0, 10);
 	const timeSuffix = now.toTimeString().slice(0, 8).replace(/:/g, "");
-	const filenameSeed = extractFilenameSeed(content, payload.name);
-	const filename = `${datePrefix}-${timeSuffix}-${filenameSeed}.md`;
+	const timestamp = `${datePrefix}-${timeSuffix}`;
+	const filename = `${timestamp}.md`;
 	const fileContent = buildFrontmatterContent(content, tags, now.toISOString());
 	const contentPath = `${thoughtsDir}/${filename}`;
 	const encodedPath = joinGitHubPath(...contentPath.split("/"));
@@ -205,7 +171,7 @@ export const POST: APIRoute = async ({ request }) => {
 				"X-GitHub-Api-Version": "2022-11-28",
 			},
 			body: JSON.stringify({
-				message: `feat: add thought ${filename}`,
+				message: `feat: add thought ${timestamp}`,
 				content: Buffer.from(fileContent, "utf-8").toString("base64"),
 				branch: githubBranch,
 			}),

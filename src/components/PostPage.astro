@@ -2,7 +2,7 @@
 import { type CollectionEntry, render } from "astro:content";
 import { NUM_THOUGHTS_ON_HOMEPAGE } from "@constants/constants";
 import { getSortedThoughts } from "@utils/content-utils";
-import { formatDateToYYYYMMDDLocal, timeAgo } from "@utils/date-utils";
+import { formatDateToYYYYMMDDInShanghai, timeAgo } from "@utils/date-utils";
 import { getPostSlugFromId, getPostUrlBySlug } from "@utils/url-utils";
 import PostCard from "./PostCard.astro";
 
@@ -24,7 +24,7 @@ const recentThoughts = await Promise.all(
 				...entry,
 				Content,
 				thoughtId,
-				dateStr: formatDateToYYYYMMDDLocal(entry.data.published),
+				dateStr: formatDateToYYYYMMDDInShanghai(entry.data.published),
 			};
 		}),
 );
