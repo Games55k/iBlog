@@ -3,8 +3,8 @@ title: Bi-Encoder 与 Cross-Encoder
 published: 2026-04-13
 description: 'Bi-Encoder 与 Cross-Encoder的区别、应用与实践'
 image: ''
-tags: [NLP, RAG]
-category: 'LLM'
+tags: [LLM, NLP, RAG]
+category: 'AI'
 ---
 
 ## 一、什么是 Bi-Encoder 和 Cross-Encoder
