@@ -67,6 +67,7 @@ export const profileConfig: ProfileConfig = {
 		"Your life's not simple, and you can't stop it from showing.",
 		"Have the confidence to accomplish anything.",
 		"Talk is cheap, show me the code.",
+		"人生不管重来几次, 都会有遗憾",
 	],
 	links: [
 		// {
