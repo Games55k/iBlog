@@ -44,6 +44,20 @@ Transformer 是一种用于序列建模的神经网络结构，最初主要用�
 - 得到每个词的重要性权重
 - 再对各词的 Value 加权求和
 
+**Scaled Dot-Product Attention**：
+
+$$
+\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
+
+- **$(d_k)$**：Key 向量的维度
+
+### 公式含义
+1. **$(QK^T)$**：计算 query 和 key 的相似度
+2. **除以 $(\sqrt{d_k})$**：防止数值过大，使 softmax 更稳定
+3. **$softmax(...)$**：把相似度变成权重分布
+4. **乘以 V**：按权重对 value 加权求和，得到输出
+
 最终得到当前词的新表示。
 本质上就是：**一个词在编码自己时，会动态吸收其他相关词的信息。**
 
@@ -54,6 +68,21 @@ Transformer 不只做一次 attention，而是并行做多次，称为 **多头�
 - 指代关系
 - 语法关系
 - 语义关联
+
+ **Multi-Head Attention**：
+
+$$
+\mathrm{MultiHead}(Q, K, V) = \mathrm{Concat}(head_1, \dots, head_h)W^O
+$$
+
+其中
+
+$$
+head_i = \mathrm{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+$$
+
+意思是：
+把 Q、K、V 投影到多个子空间里分别做 attention，再拼接起来。
 
 最后再把这些结果拼接起来，形成更丰富的表示。
 
