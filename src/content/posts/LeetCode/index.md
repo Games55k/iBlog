@@ -9,7 +9,7 @@ category: 'Code'
 ---
 
 > 用于记录个人 LeetCode 刷题集合  
-> 目前已收录 6 题
+> 目前已收录 7 题
 
 :::::leetcode-list
 
@@ -105,6 +105,66 @@ public:
             height[l] < height[r] ? l++ : r--;
         }
         return ans;
+    }
+};
+```
+:::
+
+::::
+
+::::leetcode{number="20" title="有效的括号" difficulty="Easy" tags="栈"}
+
+题目链接：[有效的括号](https://leetcode.cn/problems/valid-parentheses)
+
+给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串 s ，判断字符串是否有效。
+
+有效字符串需满足：
+
+- 左括号必须用相同类型的右括号闭合。
+- 左括号必须以正确的顺序闭合。
+- 每个右括号都有一个对应的相同类型的左括号。
+
+**思路：**
+维护一个栈，遇到左括号就放入，遇到右括号则看栈顶有没有对应类型的左括号。
+
+**代码实现：**
+
+:::code-group
+```go
+func isValid(s string) bool {
+    mp := map[rune]rune{')':'(', ']':'[', '}':'{'}
+    stk := []rune{}
+    for _, c := range s {
+        if mp[c] == 0 {
+            stk = append(stk, c)
+        } else {
+            if len(stk) == 0 || stk[len(stk) - 1] != mp[c] {
+                return false
+            }
+            stk = stk[:len(stk) - 1]
+        }
+    }
+    return len(stk) == 0
+}
+```
+
+```cpp
+class Solution {
+public:
+    bool isValid(string s) {
+        std::unordered_map<char, char> mp = {{')', '('}, {']', '['}, {'}', '{'}};
+        std::stack<char> st;
+        for (char c : s) {
+            if (!mp.contains(c)) {
+                st.push(c);
+            } else {
+                if (st.empty() || st.top() != mp[c]) {
+                    return false;
+                }
+                st.pop();
+            }
+        }
+        return st.empty();
     }
 };
 ```
