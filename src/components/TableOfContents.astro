@@ -1,0 +1,444 @@
+---
+
+---
+
+<div id="toc-root">
+  <section
+    class="toc-sidebar group hidden w-52 max-w-[200px] py-1 pr-1 opacity-60 transition-opacity duration-200 focus-within:opacity-100 hover:opacity-100 xl:block dark:opacity-95"
+    aria-label="文章目录"
+  >
+    <div class="toc-header mb-2 flex items-center gap-2">
+      <svg
+        class="menu-icon h-[15px] w-[15px] text-stone-300 transition-colors duration-200 dark:text-zinc-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="15" y2="12"></line>
+        <line x1="3" y1="18" x2="9" y2="18"></line>
+      </svg>
+      <span
+        class="toc-title text-xs font-medium text-stone-300 opacity-0 transition-opacity duration-200 group-hover:opacity-80 dark:text-zinc-400"
+      >
+        目录
+      </span>
+    </div>
+
+    <nav id="toc-nav" class="relative max-h-[46vh] overflow-y-auto pr-1">
+      <div
+        class="toc-progress-track absolute top-0 bottom-0 left-0 w-[2px] rounded-full bg-stone-200/35 dark:bg-zinc-800/70"
+      >
+        <div
+          id="toc-progress-bar"
+          class="toc-progress-bar w-full rounded-full bg-stone-300/80 transition-all duration-150 ease-out dark:bg-zinc-400"
+          style="height: 0%"
+        >
+        </div>
+      </div>
+      <ul class="toc-list space-y-1 pl-3"></ul>
+    </nav>
+  </section>
+
+  <button
+    type="button"
+    id="toc-mobile-toggle"
+    class="fixed right-4 bottom-5 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-stone-200/70 bg-white/85 text-stone-500 opacity-70 shadow-md shadow-stone-900/[0.06] backdrop-blur transition-opacity hover:opacity-100 focus-visible:opacity-100 xl:hidden dark:border-stone-800 dark:bg-stone-950/85 dark:text-stone-400 dark:shadow-black/20"
+    aria-label="打开目录"
+  >
+    <svg
+      class="h-4.5 w-4.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="15" y2="12"></line>
+      <line x1="3" y1="18" x2="9" y2="18"></line>
+    </svg>
+  </button>
+
+  <div
+    id="toc-mobile-drawer"
+    class="fixed inset-0 z-[100] hidden xl:hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="文章目录"
+  >
+    <div
+      class="toc-mobile-backdrop absolute inset-0 bg-black/45 opacity-0 backdrop-blur-sm transition-opacity duration-300"
+    >
+    </div>
+
+    <div
+      class="toc-mobile-content absolute right-0 bottom-0 left-0 translate-y-full rounded-t-2xl border-t border-stone-200 bg-white transition-transform duration-300 ease-out dark:border-stone-800 dark:bg-stone-950"
+    >
+      <div class="flex justify-center py-2">
+        <div class="h-1 w-10 rounded-full bg-stone-300 dark:bg-stone-700"></div>
+      </div>
+
+      <div
+        class="flex items-center justify-between border-b border-stone-200 px-5 pb-3 dark:border-stone-800"
+      >
+        <div class="flex items-center gap-3">
+          <h3
+            class="text-base font-semibold text-stone-900 dark:text-stone-100"
+          >
+            目录
+          </h3>
+          <span
+            id="toc-mobile-heading-count"
+            class="rounded-md bg-stone-100 px-2 py-0.5 text-xs text-stone-500 dark:bg-stone-800 dark:text-stone-400"
+          >
+            0 节
+          </span>
+        </div>
+        <button
+          type="button"
+          id="toc-mobile-close"
+          class="flex h-8 w-8 items-center justify-center rounded-full text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800"
+          aria-label="关闭目录"
+        >
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <nav
+        id="toc-mobile-nav"
+        class="max-h-[60vh] overflow-y-auto overscroll-contain px-4 py-3"
+      >
+        <ul class="toc-mobile-list space-y-1"></ul>
+      </nav>
+
+      <div class="border-t border-stone-200 px-5 py-4 dark:border-stone-800">
+        <button
+          type="button"
+          id="toc-scroll-top"
+          class="flex w-full items-center justify-center gap-2 rounded-lg border border-stone-200 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100 dark:border-stone-800 dark:text-stone-300 dark:hover:bg-stone-800"
+        >
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 19V5M5 12l7-7 7 7"></path>
+          </svg>
+          回到顶部
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  interface TocWindow extends Window {
+    __astroDogeTocController?: AbortController
+  }
+
+  const tocWindow = window as TocWindow
+
+  function setupTableOfContents() {
+    tocWindow.__astroDogeTocController?.abort()
+
+    const root = document.getElementById('toc-root')
+    if (!root) return
+
+    const controller = new AbortController()
+    tocWindow.__astroDogeTocController = controller
+    const { signal } = controller
+
+    const article = document.querySelector('article.post-content')
+    const headings = article?.querySelectorAll('h2, h3, h4, h5, h6') ?? []
+    const tocNav = document.getElementById('toc-nav')
+    const mobileNav = document.getElementById('toc-mobile-nav')
+    const progressBar = document.getElementById('toc-progress-bar')
+    const mobileCount = document.getElementById('toc-mobile-heading-count')
+    const mobileToggle = document.getElementById('toc-mobile-toggle')
+    const mobileDrawer = document.getElementById('toc-mobile-drawer')
+    const mobileClose = document.getElementById('toc-mobile-close')
+    const mobileBackdrop = mobileDrawer?.querySelector('.toc-mobile-backdrop')
+    const mobileContent = mobileDrawer?.querySelector('.toc-mobile-content')
+    const scrollTopBtn = document.getElementById('toc-scroll-top')
+
+    if (!article || headings.length === 0) {
+      root.style.display = 'none'
+      return
+    }
+
+    root.style.display = ''
+
+    if (mobileCount) mobileCount.textContent = `${headings.length} 节`
+    let minLevel = 6
+    headings.forEach((heading) => {
+      const level = Number(heading.tagName.charAt(1))
+      if (level < minLevel) minLevel = level
+    })
+
+    const generateTOC = (container: Element | null, isMobile = false) => {
+      if (!container) return
+      const list = container.querySelector(
+        isMobile ? '.toc-mobile-list' : '.toc-list',
+      )
+      if (!list) return
+      list.innerHTML = ''
+
+      headings.forEach((heading, index) => {
+        const level = Number(heading.tagName.charAt(1))
+        const id = heading.id || `heading-${index}`
+        if (!heading.id) heading.id = id
+        const text = heading.textContent?.replace('#', '').trim() || ''
+        const relativeLevel = level - minLevel
+
+        const li = document.createElement('li')
+        const a = document.createElement('a')
+        a.href = `#${id}`
+        a.dataset.headingId = id
+        a.title = text
+        a.textContent = text
+        a.className = isMobile
+          ? 'toc-mobile-link block rounded-lg px-3 py-2 text-sm text-stone-600 transition-colors hover:bg-stone-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+          : 'toc-link block truncate py-[3px] pr-1 text-[11px] leading-snug text-stone-300 transition-all duration-200 hover:text-stone-600 dark:text-zinc-400 dark:hover:text-zinc-100'
+        a.style.paddingLeft = isMobile
+          ? `${12 + relativeLevel * 12}px`
+          : `${relativeLevel * 10}px`
+
+        li.appendChild(a)
+        list.appendChild(li)
+      })
+    }
+
+    generateTOC(tocNav)
+    generateTOC(mobileNav, true)
+
+    const scrollToHeading = (headingId: string) => {
+      const heading = document.getElementById(headingId)
+      if (!heading) return
+      const offset = heading.getBoundingClientRect().top + window.scrollY - 88
+      window.scrollTo({ top: offset, behavior: 'smooth' })
+    }
+
+    const bindTOC = (container: Element | null, isMobile = false) => {
+      if (!container) return
+      container.addEventListener(
+        'click',
+        (event) => {
+          const target = event.target as HTMLElement
+          const link = target.closest(
+            isMobile ? '.toc-mobile-link' : '.toc-link',
+          ) as HTMLElement | null
+          if (!link) return
+          event.preventDefault()
+          const id = link.dataset.headingId
+          if (!id) return
+          if (isMobile) {
+            closeMobileDrawer(() => scrollToHeading(id))
+          } else {
+            scrollToHeading(id)
+          }
+        },
+        { signal },
+      )
+    }
+
+    let activeDesktop: Element | null = null
+    let activeMobile: Element | null = null
+
+    const setActive = (link: Element | null, isMobile = false) => {
+      const active = isMobile ? activeMobile : activeDesktop
+      if (active === link) return
+      if (active) {
+        active.classList.remove(
+          'toc-active',
+          'toc-mobile-active',
+          'font-medium',
+          'text-stone-600',
+          'text-stone-700',
+          'text-stone-800',
+          'text-stone-900',
+          'dark:text-stone-400',
+          'dark:text-stone-300',
+          'dark:text-stone-200',
+          'dark:text-stone-100',
+          'dark:text-zinc-500',
+          'dark:text-zinc-300',
+          'dark:text-zinc-200',
+          'dark:text-zinc-100',
+          'bg-stone-100/60',
+          'dark:bg-stone-800/50',
+          'dark:bg-zinc-800/50',
+        )
+      }
+      if (link) {
+        const activeClasses = isMobile
+          ? [
+              'toc-mobile-active',
+              'font-medium',
+              'text-stone-900',
+              'dark:text-zinc-100',
+              'bg-stone-100/60',
+              'dark:bg-zinc-800/50',
+            ]
+          : [
+              'toc-active',
+              'font-medium',
+              'text-stone-600',
+              'dark:text-zinc-100',
+            ]
+        link.classList.add(...activeClasses)
+      }
+      if (isMobile) activeMobile = link
+      else activeDesktop = link
+    }
+
+    const updateActiveHeading = () => {
+      let current: Element | null = null
+      let currentIndex = -1
+      headings.forEach((heading, index) => {
+        if (heading.getBoundingClientRect().top <= 140) {
+          current = heading
+          currentIndex = index
+        }
+      })
+
+      if (progressBar) {
+        const progress =
+          currentIndex >= 0 ? ((currentIndex + 1) / headings.length) * 100 : 0
+        progressBar.style.height = `${Math.min(progress, 100)}%`
+      }
+
+      if (!current) return
+      const id = (current as HTMLElement).id
+      setActive(tocNav?.querySelector(`a[data-heading-id="${id}"]`) ?? null)
+      setActive(
+        mobileNav?.querySelector(`a[data-heading-id="${id}"]`) ?? null,
+        true,
+      )
+    }
+
+    let ticking = false
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (ticking) return
+        ticking = true
+        requestAnimationFrame(() => {
+          updateActiveHeading()
+          ticking = false
+        })
+      },
+      { passive: true, signal },
+    )
+
+    let closeTimer: ReturnType<typeof setTimeout> | null = null
+
+    const openMobileDrawer = () => {
+      if (!mobileDrawer) return
+      mobileDrawer.classList.remove('hidden')
+      document.documentElement.style.overflow = 'hidden'
+      document.body.style.overflow = 'hidden'
+      requestAnimationFrame(() => {
+        mobileBackdrop?.classList.add('opacity-100')
+        mobileBackdrop?.classList.remove('opacity-0')
+        mobileContent?.classList.remove('translate-y-full')
+        mobileContent?.classList.add('translate-y-0')
+      })
+    }
+
+    const closeMobileDrawer = (afterClose?: () => void) => {
+      if (!mobileDrawer) return
+      mobileBackdrop?.classList.remove('opacity-100')
+      mobileBackdrop?.classList.add('opacity-0')
+      mobileContent?.classList.add('translate-y-full')
+      mobileContent?.classList.remove('translate-y-0')
+
+      if (closeTimer) clearTimeout(closeTimer)
+      closeTimer = setTimeout(() => {
+        mobileDrawer.classList.add('hidden')
+        document.documentElement.style.overflow = ''
+        document.body.style.overflow = ''
+        afterClose?.()
+      }, 260)
+    }
+
+    signal.addEventListener(
+      'abort',
+      () => {
+        if (closeTimer) clearTimeout(closeTimer)
+        document.documentElement.style.overflow = ''
+        document.body.style.overflow = ''
+      },
+      { once: true },
+    )
+
+    bindTOC(tocNav)
+    bindTOC(mobileNav, true)
+    updateActiveHeading()
+
+    mobileToggle?.addEventListener('click', openMobileDrawer, { signal })
+    mobileClose?.addEventListener('click', () => closeMobileDrawer(), {
+      signal,
+    })
+    mobileBackdrop?.addEventListener('click', () => closeMobileDrawer(), {
+      signal,
+    })
+    scrollTopBtn?.addEventListener(
+      'click',
+      () => {
+        closeMobileDrawer(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+      },
+      { signal },
+    )
+    window.addEventListener(
+      'resize',
+      () => {
+        if (!mobileToggle) return
+        mobileToggle.style.display = window.innerWidth < 1280 ? 'flex' : 'none'
+      },
+      { signal },
+    )
+  }
+
+  document.addEventListener('DOMContentLoaded', setupTableOfContents)
+  document.addEventListener('astro:after-swap', setupTableOfContents)
+  if (document.readyState === 'complete') setupTableOfContents()
+</script>
+
+<style>
+  #toc-nav {
+    scrollbar-width: none;
+  }
+
+  #toc-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  :global(.dark) .toc-sidebar .toc-link {
+    color: #d4d4d8;
+  }
+
+  :global(.dark) .toc-sidebar .toc-link:hover,
+  :global(.dark) .toc-sidebar .toc-link.toc-active {
+    color: #f4f4f5;
+  }
+</style>

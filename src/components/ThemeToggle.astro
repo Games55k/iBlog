@@ -1,0 +1,228 @@
+---
+// 主题切换组件 - 点击循环切换：系统自适应 -> 白天 -> 黑夜
+---
+
+<div class="relative">
+  <button
+    id="theme-toggle"
+    aria-label="切换主题"
+    class="group flex h-8 w-8 items-center justify-center rounded-md border border-stone-200/65 bg-white/65 text-stone-500 transition-colors duration-200 hover:bg-stone-100 hover:text-stone-800 dark:border-stone-800 dark:bg-stone-900/70 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+  >
+    <!-- 太阳图标 -->
+    <svg
+      id="sun-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="hidden"
+    >
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <!-- 月亮图标 -->
+    <svg
+      id="moon-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="hidden"
+    >
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+
+  <!-- 主题提示弹窗 -->
+  <div
+    id="theme-toast"
+    class="pointer-events-none absolute top-10 right-0 z-50 flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium whitespace-nowrap text-stone-700 opacity-0 shadow-lg transition-all duration-300 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300"
+  >
+    <span id="theme-toast-text">Auto</span>
+  </div>
+</div>
+
+<script>
+  interface ThemeWindow extends Window {
+    __astroDogeThemeController?: AbortController
+    __astroDogeThemeObserver?: MutationObserver
+  }
+
+  const themeWindow = window as ThemeWindow
+
+  function initThemeToggle() {
+    themeWindow.__astroDogeThemeController?.abort()
+    themeWindow.__astroDogeThemeObserver?.disconnect()
+
+    const themeToggle = document.getElementById('theme-toggle')
+    const sunIcon = document.getElementById('sun-icon')
+    const moonIcon = document.getElementById('moon-icon')
+    const themeToast = document.getElementById('theme-toast')
+    const themeToastText = document.getElementById('theme-toast-text')
+
+    if (!themeToggle) return
+
+    const controller = new AbortController()
+    themeWindow.__astroDogeThemeController = controller
+    const { signal } = controller
+    let toastTimeout: ReturnType<typeof setTimeout> | null = null
+
+    // 显示提示弹窗
+    function showToast(theme: string) {
+      if (!themeToast || !themeToastText) return
+
+      const themeLabels: Record<string, string> = {
+        system: 'Auto',
+        light: 'Light',
+        dark: 'Dark',
+      }
+
+      themeToastText.textContent = themeLabels[theme] || theme
+
+      // 清除之前的定时器
+      if (toastTimeout) {
+        clearTimeout(toastTimeout)
+      }
+
+      // 显示弹窗
+      themeToast.classList.remove('opacity-0')
+      themeToast.classList.add('opacity-100')
+
+      // 0.6秒后隐藏
+      toastTimeout = setTimeout(() => {
+        themeToast.classList.remove('opacity-100')
+        themeToast.classList.add('opacity-0')
+      }, 600)
+    }
+
+    signal.addEventListener(
+      'abort',
+      () => {
+        if (toastTimeout) clearTimeout(toastTimeout)
+      },
+      { once: true },
+    )
+
+    // 更新图标显示 - 根据实际显示的主题（亮/暗）来决定图标
+    function updateIcon() {
+      const isDark = document.documentElement.classList.contains('dark')
+      sunIcon?.classList.add('hidden')
+      moonIcon?.classList.add('hidden')
+
+      if (isDark) {
+        // 暗色模式显示太阳（点击可切换到亮色）
+        sunIcon?.classList.remove('hidden')
+      } else {
+        // 亮色模式显示月亮（点击可切换到暗色）
+        moonIcon?.classList.remove('hidden')
+      }
+    }
+
+    // 点击切换主题：system -> light -> dark -> system
+    themeToggle.addEventListener(
+      'click',
+      () => {
+        const currentTheme = localStorage.getItem('theme') || 'system'
+        let nextTheme: string
+
+        if (currentTheme === 'system') {
+          nextTheme = 'light'
+        } else if (currentTheme === 'light') {
+          nextTheme = 'dark'
+        } else {
+          nextTheme = 'system'
+        }
+
+        localStorage.setItem('theme', nextTheme)
+        applyTheme(nextTheme)
+        updateIcon()
+        showToast(nextTheme)
+      },
+      { signal },
+    )
+
+    // 初始化图标
+    updateIcon()
+
+    // 监听主题变化
+    const observer = new MutationObserver(() => {
+      updateIcon()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+    themeWindow.__astroDogeThemeObserver = observer
+
+    signal.addEventListener(
+      'abort',
+      () => {
+        observer.disconnect()
+      },
+      { once: true },
+    )
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener(
+      'change',
+      () => {
+        const theme = localStorage.getItem('theme') || 'system'
+        if (theme === 'system') {
+          applyTheme('system')
+        }
+      },
+      { signal },
+    )
+  }
+
+  function applyTheme(theme: string) {
+    const css = document.createElement('style')
+    css.appendChild(
+      document.createTextNode(
+        `* {
+           -webkit-transition: none !important;
+           -moz-transition: none !important;
+           -o-transition: none !important;
+           -ms-transition: none !important;
+           transition: none !important;
+        }`,
+      ),
+    )
+    document.head.appendChild(css)
+
+    const isDark =
+      theme === 'dark'
+        ? true
+        : theme === 'light'
+          ? false
+          : window.matchMedia('(prefers-color-scheme: dark)').matches
+
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+
+    void window.getComputedStyle(css).opacity
+    document.head.removeChild(css)
+  }
+
+  document.addEventListener('DOMContentLoaded', initThemeToggle)
+  document.addEventListener('astro:after-swap', initThemeToggle)
+</script>

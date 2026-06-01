@@ -1,15 +1,7 @@
-/// <reference types="astro/client" />
 /// <reference path="../.astro/types.d.ts" />
+/// <reference types="astro/client" />
 
 interface ImportMetaEnv {
-	readonly GITHUB_BRANCH?: string;
-	readonly GITHUB_OWNER?: string;
-	readonly GITHUB_REPO?: string;
-	readonly GITHUB_TOKEN?: string;
-	readonly THOUGHTS_DIR?: string;
-	readonly THOUGHT_API_TOKEN?: string;
-}
-
-interface ImportMeta {
-	readonly env: ImportMetaEnv;
+  readonly PUBLIC_OWNER_NAME?: string
+  readonly PUBLIC_OWNER_EMAIL?: string
 }

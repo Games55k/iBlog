@@ -1,0 +1,224 @@
+---
+import Container from '@components/Container.astro'
+import Link from '@components/Link.astro'
+import { ABOUT, PROJECTS, SITE, SOCIALS, TECH_STACK } from '@consts'
+import PageLayout from '@layouts/PageLayout.astro'
+
+const profileNotes = [
+  { label: '现在身份', value: '找工作的大三学生' },
+  { label: '正在学习', value: 'Go & Agent' },
+]
+
+const profileTagText =
+  '代码 / 开源 / 阅读 / 生活记录 / 旅游'
+---
+
+<PageLayout title={ABOUT.TITLE} description={ABOUT.DESCRIPTION}>
+  <Container class="!max-w-3xl">
+    <div class="space-y-12">
+      <section class="pb-4">
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div>
+            <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <img
+                src="/favicon.png"
+                alt="Your Name"
+                class="h-20 w-20 rounded-xl border border-stone-200/70 object-cover dark:border-stone-800"
+                width="80"
+                height="80"
+                loading="eager"
+                decoding="async"
+              />
+              <div>
+                <h1
+                  class="text-3xl font-semibold text-stone-950 sm:text-4xl dark:text-stone-50"
+                >
+                  Sleepwf
+                </h1>
+                <p class="mt-2 text-stone-600 dark:text-stone-400">
+                  一句话介绍你自己。
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="mt-7 max-w-2xl space-y-5 leading-8 text-stone-700 dark:text-stone-300"
+            >
+              <p>
+                👋 Hi，这里是 Sleepwf 的个人博客，是一名大三学生，目前就读于 ZZULI 的 人工智能专业。正在学习 Go 后端开发以及 Agent 相关内容。
+              </p>
+              <p>
+                目前活跃于 Github 以及在 X 上闲逛～
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="divide-y divide-stone-200/70 border-t border-b border-stone-200/70 lg:border-t-0 dark:divide-stone-800 dark:border-stone-800"
+          >
+            {
+              profileNotes.map((item) => (
+                <div class="py-4">
+                  <p class="text-sm text-stone-500 dark:text-stone-400">
+                    {item.label}
+                  </p>
+                  <p class="mt-1 text-base font-medium text-stone-900 dark:text-stone-100">
+                    {item.value}
+                  </p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="pb-4">
+        <div class="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <h2
+              class="text-lg font-semibold text-stone-900 dark:text-stone-100"
+            >
+              标签和一点自述
+            </h2>
+          </div>
+          <p class="hidden text-sm text-stone-500 sm:block dark:text-stone-400">
+            因为热爱，所以热爱。
+          </p>
+        </div>
+
+        <div class="space-y-6">
+          <p
+            class="text-xs leading-7 text-stone-500 sm:text-sm dark:text-stone-400"
+          >
+            <span class="font-medium text-stone-600 dark:text-stone-300">
+              标签：
+            </span>
+            {profileTagText}
+          </p>
+
+          <div
+            class="space-y-5 text-sm leading-8 text-stone-700 sm:text-base dark:text-stone-300"
+          >
+            <p>
+              爱好：
+              <mark>Code</mark>、<mark>Write</mark>、<mark>Read</mark>、<mark>Anime</mark>、<mark>Travel</mark>
+            </p>
+            <p>
+              人生不管重来都会有遗憾，所以你想活出怎样的人生。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid gap-10 pb-4 lg:grid-cols-[0.8fr_1.2fr]">
+        <div>
+          <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100">
+            联系
+          </h2>
+          <div class="mt-5 flex flex-wrap gap-x-4 gap-y-3 text-sm">
+            {
+              SOCIALS.map((social) => (
+                <Link
+                  href={social.HREF}
+                  external
+                  class="text-stone-600 transition-colors hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+                >
+                  {social.NAME}
+                </Link>
+              ))
+            }
+            <Link href={`mailto:${SITE.EMAIL}`}>{SITE.EMAIL}</Link>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100">
+            技术栈
+          </h2>
+          <div class="mt-5 space-y-4">
+            {
+              TECH_STACK.map((group) => (
+                <div class="grid gap-2 sm:grid-cols-[72px_minmax(0,1fr)]">
+                  <h3 class="text-xs font-medium tracking-wide text-stone-500 uppercase dark:text-stone-400">
+                    {group.category}
+                  </h3>
+                  <div class="flex flex-wrap gap-x-3 gap-y-2 text-sm">
+                    {group.items.map((tech) => (
+                      <Link
+                        href={tech.href}
+                        external
+                        class="text-stone-700 dark:text-stone-300"
+                      >
+                        {tech.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="mb-5 flex items-baseline justify-between gap-3">
+          <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100">
+            项目
+          </h2>
+          <Link
+            href="https://github.com/Games55k?tab=repositories"
+            external
+            class="text-sm text-stone-500"
+          >
+            探索更多
+          </Link>
+        </div>
+        <div
+          class="grid gap-8 border-t border-stone-200/70 pt-5 lg:grid-cols-2 dark:border-stone-800"
+        >
+          {
+            PROJECTS.map((group) => (
+              <div>
+                <h3 class="mb-3 text-xs font-medium tracking-wide text-stone-500 uppercase dark:text-stone-400">
+                  {group.category}
+                </h3>
+                <ul class="divide-y divide-stone-200/70 dark:divide-stone-800">
+                  {group.items.map((project) => (
+                    <li class="py-3 text-sm leading-relaxed">
+                      <div class="flex flex-wrap items-baseline gap-2">
+                        <Link
+                          href={project.href}
+                          external
+                          class="font-medium text-stone-900 dark:text-stone-100"
+                        >
+                          {project.name}
+                        </Link>
+                        {project.homepage && (
+                          <Link
+                            href={project.homepage}
+                            external
+                            class="text-xs text-stone-400"
+                          >
+                            主页
+                          </Link>
+                        )}
+                        {project.badge && (
+                          <span class="rounded bg-stone-100 px-1.5 py-0.5 text-xs leading-none text-stone-400 dark:bg-stone-800 dark:text-stone-500">
+                            {project.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p class="mt-1 text-stone-500 dark:text-stone-400">
+                        {project.description}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+    </div>
+  </Container>
+</PageLayout>

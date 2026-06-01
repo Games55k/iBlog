@@ -1,0 +1,2527 @@
+---
+// 自定义评论组件
+// 使用 GitHub Issues 存储，支持 Gravatar 头像、表情、Markdown 和剧透语法
+// 现代化卡片式设计
+
+interface Props {
+  slug: string
+  title: string
+  variant?: 'default' | 'guestbook'
+}
+
+const { slug, title, variant = 'default' } = Astro.props
+const isGuestbook = variant === 'guestbook'
+const publicOwnerName = import.meta.env.PUBLIC_OWNER_NAME || ''
+const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
+---
+
+<section
+  class:list={[
+    'comments-section',
+    isGuestbook && 'comments-section--guestbook',
+  ]}
+  data-slug={slug}
+  data-title={title}
+  data-owner-name={publicOwnerName}
+  data-owner-email={publicOwnerEmail}
+>
+  <!-- 评论表单 -->
+  <form
+    id="comment-form"
+    class:list={[
+      isGuestbook
+        ? 'border-y border-stone-200/70 py-4 dark:border-stone-800'
+        : 'rounded-lg border border-stone-200 p-4 dark:border-stone-700',
+    ]}
+  >
+    <input
+      type="text"
+      name="_gotcha"
+      class="hidden"
+      tabindex="-1"
+      autocomplete="off"
+    />
+    <!-- 用户信息区域 - 三列布局 -->
+    <div
+      class="no-focus mb-2 grid grid-cols-1 gap-1 border-b border-stone-200 pb-2 sm:grid-cols-3 sm:gap-2 dark:border-stone-700"
+    >
+      <div class="flex items-center gap-2">
+        <label
+          for="comment-name"
+          class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400"
+          >名称:</label
+        >
+        <input
+          id="comment-name"
+          name="name"
+          type="text"
+          maxlength="50"
+          placeholder="必填，用于展示身份"
+          required
+          class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500"
+        />
+      </div>
+      <div class="relative flex items-center gap-2">
+        <label
+          for="comment-email"
+          class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400"
+          >邮箱:</label
+        >
+        <input
+          id="comment-email"
+          name="email"
+          type="email"
+          placeholder="可选，用于头像和通知"
+          class="flex-1 border-0 bg-transparent pr-8 text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500"
+        />
+        <div
+          class="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2"
+        >
+          <img
+            id="avatar-preview"
+            alt="头像预览"
+            loading="lazy"
+            width="24"
+            height="24"
+            class="h-6 w-6 rounded-full border border-stone-300 dark:border-stone-600"
+            src="https://weavatar.com/avatar/?d=mp&s=80"
+          />
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <label
+          for="comment-website"
+          class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400"
+          >网站:</label
+        >
+        <input
+          id="comment-website"
+          name="website"
+          type="url"
+          placeholder="可选，用于引导访问"
+          class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500"
+        />
+      </div>
+    </div>
+
+    <!-- 评论内容 -->
+    <textarea
+      id="comment-content"
+      name="content"
+      maxlength="1200"
+      rows="5"
+      placeholder="既然来了，不妨留个言再走吧..."
+      required
+      spellcheck="false"
+      class="no-focus w-full resize-y border-0 bg-transparent text-[16px] leading-relaxed text-stone-900 outline-none placeholder:text-stone-400 dark:text-stone-100 dark:placeholder:text-stone-500"
+    ></textarea>
+
+    <!-- 底部工具栏 -->
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 text-stone-400 dark:text-stone-500">
+        <!-- 表情按钮 -->
+        <div class="relative flex items-center">
+          <button
+            type="button"
+            id="emoji-btn"
+            aria-label="选择表情"
+            class="inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-stone-100 hover:text-stone-700 active:scale-90 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+          >
+            <svg
+              class="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+              <line x1="9" y1="9" x2="9.01" y2="9"></line>
+              <line x1="15" y1="9" x2="15.01" y2="9"></line>
+            </svg>
+            表情
+          </button>
+          <!-- 表情选择器 -->
+          <div
+            id="emoji-picker"
+            class="emoji-picker absolute bottom-full left-0 z-20 mb-2 hidden w-80 rounded-lg border border-stone-200 bg-white p-1 shadow-xl sm:w-96 dark:border-stone-700 dark:bg-stone-800"
+          >
+            <div id="emoji-content" class="max-h-60 overflow-y-auto p-1"></div>
+            <div
+              class="mt-1 border-t border-stone-100 pt-1 dark:border-stone-700/50"
+            >
+              <div
+                id="emoji-tabs"
+                class="flex flex-nowrap gap-1 overflow-x-auto px-1 pb-1"
+              >
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="hidden text-xs sm:inline"
+          >支持 Markdown、预设表情、剧透语法，如 || 剧透内容 ||</span
+        >
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span
+          id="char-count-wrapper"
+          class="hidden text-xs text-stone-400 sm:inline dark:text-stone-500"
+        >
+          <span id="char-count">0</span> / 1200
+        </span>
+        <button
+          type="submit"
+          id="submit-btn"
+          class="inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-stone-100 hover:text-stone-700 active:scale-90 disabled:cursor-not-allowed disabled:opacity-50 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+        >
+          <span id="submit-text">提交留言</span>
+          <svg
+            id="submit-icon"
+            class="h-3.5 w-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          <svg
+            id="submit-spinner"
+            class="hidden h-3.5 w-3.5 animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- 评论列表 -->
+  <div id="comments-container" class={isGuestbook ? 'mt-10' : 'mt-12 sm:mt-16'}>
+    <h2
+      id="comments-count"
+      class="mb-6 hidden font-medium text-stone-900 sm:text-lg dark:text-stone-100"
+    >
+      大家在聊 (<span id="count-number">0</span>)
+    </h2>
+
+    <div id="comments-loading" class="py-12 text-center">
+      <p class="animate-pulse text-sm text-stone-500 dark:text-stone-400">
+        加载评论中...
+      </p>
+    </div>
+
+    <div id="comments-list" class="hidden space-y-4"></div>
+
+    <div id="comments-empty" class="hidden">
+      <div class="mt-24 flex flex-col items-center justify-center rounded-lg">
+        <div class="mb-4 rounded-full bg-stone-50 p-4 dark:bg-stone-800/50">
+          <svg
+            class="h-8 w-8 text-stone-300 dark:text-stone-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-sm font-medium text-stone-600 dark:text-stone-400">
+          还没有人留言
+        </p>
+        <p class="mt-1 text-xs text-stone-400 dark:text-stone-500">
+          快来抢占沙发
+        </p>
+      </div>
+    </div>
+
+    <div id="comments-error" class="hidden">
+      <div
+        class="flex items-center gap-3 rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-900/50"
+      >
+        <svg
+          class="h-5 w-5 shrink-0 text-stone-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span class="flex-1 text-sm text-stone-600 dark:text-stone-400"
+          >加载评论时出错了</span
+        >
+        <button
+          id="retry-load"
+          class="rounded-lg border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-50 hover:text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+          >重试</button
+        >
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  interface Comment {
+    id: number
+    name: string
+    avatar: string
+    website?: string
+    content: string
+    createdAt: string
+    userAgent?: string
+    replyTo?: {
+      id: number
+      name: string
+    }
+    isOwner?: boolean
+    featured?: boolean
+    replies?: Comment[]
+    isPending?: boolean // 标记为待确认的本地评论
+  }
+
+  interface PendingComment {
+    slug: string
+    id: number
+    name: string
+    email?: string
+    website?: string
+    content: string
+    createdAt: string
+    replyToId?: number
+    replyToName?: string
+    submittedAt: number // 提交时间戳
+    isOwner?: boolean
+    featured?: boolean
+    userAgent?: string
+  }
+
+  const PENDING_COMMENTS_KEY = 'pending_comments'
+  const PENDING_TIMEOUT = 5 * 60 * 1000 // 5 分钟超时
+
+  interface EmojiPack {
+    type: string
+    name: string
+    size?: number
+    items: Record<string, string>
+  }
+
+  type EmojisConfig = Record<string, EmojiPack>
+
+  let emojisConfigPromise: Promise<EmojisConfig> | null = null
+
+  interface CommentsWindow extends Window {
+    __astroDogeCommentsController?: AbortController
+  }
+
+  const commentsWindow = window as CommentsWindow
+
+  function loadEmojisConfig(): Promise<EmojisConfig> {
+    if (!emojisConfigPromise) {
+      emojisConfigPromise = fetch('/emojis.json')
+        .then((response) => (response.ok ? response.json() : {}))
+        .catch((error) => {
+          console.error('Failed to load emojis:', error)
+          return {}
+        })
+    }
+
+    return emojisConfigPromise
+  }
+
+  const STORAGE_KEY = 'blog-comment-user'
+  const GRAVATAR_DEBOUNCE = 800
+
+  interface StoredUserInfo {
+    name: string
+    email: string
+    website?: string
+  }
+
+  interface CommentPayload {
+    slug?: string
+    title?: string
+    name: string
+    email?: string
+    website?: string
+    content: string
+    replyToId?: string
+    replyToName?: string
+    isOwner?: boolean
+    ownerToken?: string
+    userAgent?: string
+    _gotcha?: string
+  }
+
+  // ============================================================
+  // 待确认评论缓存管理
+  // ============================================================
+
+  function getPendingComments(): PendingComment[] {
+    try {
+      const data = localStorage.getItem(PENDING_COMMENTS_KEY)
+      return data ? JSON.parse(data) : []
+    } catch {
+      return []
+    }
+  }
+
+  function savePendingComments(comments: PendingComment[]): void {
+    localStorage.setItem(PENDING_COMMENTS_KEY, JSON.stringify(comments))
+  }
+
+  function addPendingComment(comment: PendingComment): void {
+    const comments = getPendingComments()
+    comments.push(comment)
+    savePendingComments(comments)
+  }
+
+  function removePendingComment(id: number): void {
+    const comments = getPendingComments().filter((c) => c.id !== id)
+    savePendingComments(comments)
+  }
+
+  function cleanExpiredPendingComments(): void {
+    const now = Date.now()
+    const comments = getPendingComments().filter(
+      (c) => now - c.submittedAt < PENDING_TIMEOUT,
+    )
+    savePendingComments(comments)
+  }
+
+  // 检查远程评论是否匹配本地待确认评论
+  function matchPendingComment(
+    remote: Comment,
+    pending: PendingComment,
+  ): boolean {
+    // 通过名称和内容匹配（内容前50字符）
+    const contentMatch =
+      remote.content.slice(0, 50) === pending.content.slice(0, 50)
+    const nameMatch = remote.name === pending.name
+    // 时间差在 10 分钟内
+    const timeDiff = Math.abs(
+      new Date(remote.createdAt).getTime() -
+        new Date(pending.createdAt).getTime(),
+    )
+    const timeMatch = timeDiff < 10 * 60 * 1000
+    return nameMatch && contentMatch && timeMatch
+  }
+
+  // 将待确认评论转换为 Comment 对象
+  function pendingToComment(pending: PendingComment): Comment {
+    const md5Hash = pending.email ? md5(pending.email.toLowerCase().trim()) : ''
+    return {
+      id: pending.id,
+      name: pending.name,
+      avatar: pending.email
+        ? `https://weavatar.com/avatar/${md5Hash}?s=80&d=identicon`
+        : 'https://weavatar.com/avatar/?d=mp',
+      website: pending.website,
+      content: pending.content,
+      createdAt: pending.createdAt,
+      userAgent: pending.userAgent,
+      replyTo: pending.replyToId
+        ? {
+            id: pending.replyToId,
+            name: pending.replyToName || '',
+          }
+        : undefined,
+      isOwner: pending.isOwner,
+      featured: pending.featured,
+      isPending: true,
+    }
+  }
+
+  // 合并远程评论和本地待确认评论
+  function mergeWithPendingComments(
+    remoteComments: Comment[],
+    currentSlug: string,
+  ): Comment[] {
+    // 清理过期的待确认评论
+    cleanExpiredPendingComments()
+
+    const pendingComments = getPendingComments().filter(
+      (p) => p.slug === currentSlug,
+    )
+    if (pendingComments.length === 0) return remoteComments
+
+    // 检查哪些待确认评论已经在远程存在
+    const remainingPending: PendingComment[] = []
+
+    for (const pending of pendingComments) {
+      let found = false
+
+      // 检查顶层评论
+      for (const remote of remoteComments) {
+        if (matchPendingComment(remote, pending)) {
+          found = true
+          removePendingComment(pending.id)
+          break
+        }
+        // 检查回复
+        if (remote.replies) {
+          for (const reply of remote.replies) {
+            if (matchPendingComment(reply, pending)) {
+              found = true
+              removePendingComment(pending.id)
+              break
+            }
+          }
+        }
+        if (found) break
+      }
+
+      if (!found) {
+        remainingPending.push(pending)
+      }
+    }
+
+    // 将剩余的待确认评论合并到列表中
+    const result = [...remoteComments]
+
+    for (const pending of remainingPending) {
+      const pendingComment = pendingToComment(pending)
+
+      if (pending.replyToId) {
+        // 是回复，找到父评论并添加
+        for (const comment of result) {
+          if (comment.id === pending.replyToId) {
+            if (!comment.replies) comment.replies = []
+            comment.replies.push(pendingComment)
+            // 按时间排序
+            comment.replies.sort(
+              (a, b) =>
+                new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime(),
+            )
+            break
+          }
+        }
+      } else {
+        // 是顶层评论，添加到开头
+        result.unshift(pendingComment)
+      }
+    }
+
+    return result
+  }
+
+  // 解析表情语法 :packname_emojiname: 为图片
+  function parseEmojis(text: string, emojisConfig: EmojisConfig): string {
+    return text.replace(
+      /:([a-zA-Z0-9_]+)_([a-zA-Z0-9\u4e00-\u9fa5]+):/g,
+      (match, packName, emojiName) => {
+        const pack = emojisConfig[packName]
+        if (pack && pack.items[emojiName]) {
+          const url = pack.items[emojiName]
+          const size = pack.size || 24
+          if (pack.type === 'image') {
+            return `<img class="emoji" src="${url}" alt="${emojiName}" title="${emojiName}" width="${size}" height="${size}" loading="lazy" referrerpolicy="no-referrer" />`
+          } else {
+            return pack.items[emojiName]
+          }
+        }
+        return match
+      },
+    )
+  }
+
+  // 简单的 Markdown 解析器（包含剧透语法）
+  function parseMarkdown(text: string, emojisConfig: EmojisConfig): string {
+    let html = text
+      // 转义 HTML
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      // 剧透语法 || text ||
+      .replace(
+        /\|\|([^|]+)\|\|/g,
+        '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')" title="点击查看剧透">$1</span>',
+      )
+      // 图片 ![alt](url)
+      .replace(
+        /!\[([^\]]*)\]\(([^)]+)\)/g,
+        '<img src="$2" alt="$1" class="emoji" loading="lazy" />',
+      )
+      // 链接 [text](url)
+      .replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer" class="comment-link">$1</a>',
+      )
+      // 粗体 **text**
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      // 斜体 *text*
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      // 行内代码 `code`
+      .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
+      // 换行
+      .replace(/\n/g, '<br>')
+
+    // 解析表情语法
+    html = parseEmojis(html, emojisConfig)
+
+    return html
+  }
+
+  // MD5 实现（简化版，用于 Gravatar）
+  function md5(string: string): string {
+    function rotateLeft(value: number, shift: number): number {
+      return (value << shift) | (value >>> (32 - shift))
+    }
+
+    function addUnsigned(x: number, y: number): number {
+      const x4 = x & 0x80000000
+      const y4 = y & 0x80000000
+      const x8 = x & 0x40000000
+      const y8 = y & 0x40000000
+      const result = (x & 0x3fffffff) + (y & 0x3fffffff)
+      if (x8 & y8) return result ^ 0x80000000 ^ x4 ^ y4
+      if (x8 | y8) {
+        if (result & 0x40000000) return result ^ 0xc0000000 ^ x4 ^ y4
+        else return result ^ 0x40000000 ^ x4 ^ y4
+      } else {
+        return result ^ x4 ^ y4
+      }
+    }
+
+    function f(x: number, y: number, z: number): number {
+      return (x & y) | (~x & z)
+    }
+    function g(x: number, y: number, z: number): number {
+      return (x & z) | (y & ~z)
+    }
+    function h(x: number, y: number, z: number): number {
+      return x ^ y ^ z
+    }
+    function i(x: number, y: number, z: number): number {
+      return y ^ (x | ~z)
+    }
+
+    function ff(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      x: number,
+      s: number,
+      ac: number,
+    ): number {
+      a = addUnsigned(a, addUnsigned(addUnsigned(f(b, c, d), x), ac))
+      return addUnsigned(rotateLeft(a, s), b)
+    }
+
+    function gg(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      x: number,
+      s: number,
+      ac: number,
+    ): number {
+      a = addUnsigned(a, addUnsigned(addUnsigned(g(b, c, d), x), ac))
+      return addUnsigned(rotateLeft(a, s), b)
+    }
+
+    function hh(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      x: number,
+      s: number,
+      ac: number,
+    ): number {
+      a = addUnsigned(a, addUnsigned(addUnsigned(h(b, c, d), x), ac))
+      return addUnsigned(rotateLeft(a, s), b)
+    }
+
+    function ii(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      x: number,
+      s: number,
+      ac: number,
+    ): number {
+      a = addUnsigned(a, addUnsigned(addUnsigned(i(b, c, d), x), ac))
+      return addUnsigned(rotateLeft(a, s), b)
+    }
+
+    function convertToWordArray(str: string): number[] {
+      let wordCount: number
+      const messageLength = str.length
+      const temp1 = messageLength + 8
+      const temp2 = (temp1 - (temp1 % 64)) / 64
+      const numberOfWords = (temp2 + 1) * 16
+      const wordArray: number[] = new Array(numberOfWords - 1)
+      let bytePosition: number
+      let byteCount = 0
+      while (byteCount < messageLength) {
+        wordCount = (byteCount - (byteCount % 4)) / 4
+        bytePosition = (byteCount % 4) * 8
+        wordArray[wordCount] =
+          wordArray[wordCount] | (str.charCodeAt(byteCount) << bytePosition)
+        byteCount++
+      }
+      wordCount = (byteCount - (byteCount % 4)) / 4
+      bytePosition = (byteCount % 4) * 8
+      wordArray[wordCount] = wordArray[wordCount] | (0x80 << bytePosition)
+      wordArray[numberOfWords - 2] = messageLength << 3
+      wordArray[numberOfWords - 1] = messageLength >>> 29
+      return wordArray
+    }
+
+    function wordToHex(value: number): string {
+      let hex = ''
+      for (let i = 0; i <= 3; i++) {
+        const byte = (value >>> (i * 8)) & 255
+        hex += ('0' + byte.toString(16)).slice(-2)
+      }
+      return hex
+    }
+
+    const x = convertToWordArray(string)
+    let a = 0x67452301,
+      b = 0xefcdab89,
+      c = 0x98badcfe,
+      d = 0x10325476
+
+    const S11 = 7,
+      S12 = 12,
+      S13 = 17,
+      S14 = 22
+    const S21 = 5,
+      S22 = 9,
+      S23 = 14,
+      S24 = 20
+    const S31 = 4,
+      S32 = 11,
+      S33 = 16,
+      S34 = 23
+    const S41 = 6,
+      S42 = 10,
+      S43 = 15,
+      S44 = 21
+
+    for (let k = 0; k < x.length; k += 16) {
+      const AA = a,
+        BB = b,
+        CC = c,
+        DD = d
+      a = ff(a, b, c, d, x[k + 0], S11, 0xd76aa478)
+      d = ff(d, a, b, c, x[k + 1], S12, 0xe8c7b756)
+      c = ff(c, d, a, b, x[k + 2], S13, 0x242070db)
+      b = ff(b, c, d, a, x[k + 3], S14, 0xc1bdceee)
+      a = ff(a, b, c, d, x[k + 4], S11, 0xf57c0faf)
+      d = ff(d, a, b, c, x[k + 5], S12, 0x4787c62a)
+      c = ff(c, d, a, b, x[k + 6], S13, 0xa8304613)
+      b = ff(b, c, d, a, x[k + 7], S14, 0xfd469501)
+      a = ff(a, b, c, d, x[k + 8], S11, 0x698098d8)
+      d = ff(d, a, b, c, x[k + 9], S12, 0x8b44f7af)
+      c = ff(c, d, a, b, x[k + 10], S13, 0xffff5bb1)
+      b = ff(b, c, d, a, x[k + 11], S14, 0x895cd7be)
+      a = ff(a, b, c, d, x[k + 12], S11, 0x6b901122)
+      d = ff(d, a, b, c, x[k + 13], S12, 0xfd987193)
+      c = ff(c, d, a, b, x[k + 14], S13, 0xa679438e)
+      b = ff(b, c, d, a, x[k + 15], S14, 0x49b40821)
+      a = gg(a, b, c, d, x[k + 1], S21, 0xf61e2562)
+      d = gg(d, a, b, c, x[k + 6], S22, 0xc040b340)
+      c = gg(c, d, a, b, x[k + 11], S23, 0x265e5a51)
+      b = gg(b, c, d, a, x[k + 0], S24, 0xe9b6c7aa)
+      a = gg(a, b, c, d, x[k + 5], S21, 0xd62f105d)
+      d = gg(d, a, b, c, x[k + 10], S22, 0x2441453)
+      c = gg(c, d, a, b, x[k + 15], S23, 0xd8a1e681)
+      b = gg(b, c, d, a, x[k + 4], S24, 0xe7d3fbc8)
+      a = gg(a, b, c, d, x[k + 9], S21, 0x21e1cde6)
+      d = gg(d, a, b, c, x[k + 14], S22, 0xc33707d6)
+      c = gg(c, d, a, b, x[k + 3], S23, 0xf4d50d87)
+      b = gg(b, c, d, a, x[k + 8], S24, 0x455a14ed)
+      a = gg(a, b, c, d, x[k + 13], S21, 0xa9e3e905)
+      d = gg(d, a, b, c, x[k + 2], S22, 0xfcefa3f8)
+      c = gg(c, d, a, b, x[k + 7], S23, 0x676f02d9)
+      b = gg(b, c, d, a, x[k + 12], S24, 0x8d2a4c8a)
+      a = hh(a, b, c, d, x[k + 5], S31, 0xfffa3942)
+      d = hh(d, a, b, c, x[k + 8], S32, 0x8771f681)
+      c = hh(c, d, a, b, x[k + 11], S33, 0x6d9d6122)
+      b = hh(b, c, d, a, x[k + 14], S34, 0xfde5380c)
+      a = hh(a, b, c, d, x[k + 1], S31, 0xa4beea44)
+      d = hh(d, a, b, c, x[k + 4], S32, 0x4bdecfa9)
+      c = hh(c, d, a, b, x[k + 7], S33, 0xf6bb4b60)
+      b = hh(b, c, d, a, x[k + 10], S34, 0xbebfbc70)
+      a = hh(a, b, c, d, x[k + 13], S31, 0x289b7ec6)
+      d = hh(d, a, b, c, x[k + 0], S32, 0xeaa127fa)
+      c = hh(c, d, a, b, x[k + 3], S33, 0xd4ef3085)
+      b = hh(b, c, d, a, x[k + 6], S34, 0x4881d05)
+      a = hh(a, b, c, d, x[k + 9], S31, 0xd9d4d039)
+      d = hh(d, a, b, c, x[k + 12], S32, 0xe6db99e5)
+      c = hh(c, d, a, b, x[k + 15], S33, 0x1fa27cf8)
+      b = hh(b, c, d, a, x[k + 2], S34, 0xc4ac5665)
+      a = ii(a, b, c, d, x[k + 0], S41, 0xf4292244)
+      d = ii(d, a, b, c, x[k + 7], S42, 0x432aff97)
+      c = ii(c, d, a, b, x[k + 14], S43, 0xab9423a7)
+      b = ii(b, c, d, a, x[k + 5], S44, 0xfc93a039)
+      a = ii(a, b, c, d, x[k + 12], S41, 0x655b59c3)
+      d = ii(d, a, b, c, x[k + 3], S42, 0x8f0ccc92)
+      c = ii(c, d, a, b, x[k + 10], S43, 0xffeff47d)
+      b = ii(b, c, d, a, x[k + 1], S44, 0x85845dd1)
+      a = ii(a, b, c, d, x[k + 8], S41, 0x6fa87e4f)
+      d = ii(d, a, b, c, x[k + 15], S42, 0xfe2ce6e0)
+      c = ii(c, d, a, b, x[k + 6], S43, 0xa3014314)
+      b = ii(b, c, d, a, x[k + 13], S44, 0x4e0811a1)
+      a = ii(a, b, c, d, x[k + 4], S41, 0xf7537e82)
+      d = ii(d, a, b, c, x[k + 11], S42, 0xbd3af235)
+      c = ii(c, d, a, b, x[k + 2], S43, 0x2ad7d2bb)
+      b = ii(b, c, d, a, x[k + 9], S44, 0xeb86d391)
+      a = addUnsigned(a, AA)
+      b = addUnsigned(b, BB)
+      c = addUnsigned(c, CC)
+      d = addUnsigned(d, DD)
+    }
+
+    return (
+      wordToHex(a) +
+      wordToHex(b) +
+      wordToHex(c) +
+      wordToHex(d)
+    ).toLowerCase()
+  }
+
+  async function initComments() {
+    const section = document.querySelector('.comments-section') as HTMLElement
+    if (!section) {
+      commentsWindow.__astroDogeCommentsController?.abort()
+      commentsWindow.__astroDogeCommentsController = undefined
+      return
+    }
+
+    if (section.dataset.commentsBound === 'true') return
+
+    commentsWindow.__astroDogeCommentsController?.abort()
+    const controller = new AbortController()
+    const { signal } = controller
+    commentsWindow.__astroDogeCommentsController = controller
+    section.dataset.commentsBound = 'true'
+
+    const slug = section.dataset.slug
+    const title = section.dataset.title
+    const ownerName = section.dataset.ownerName || ''
+    const ownerEmail = section.dataset.ownerEmail || ''
+    let avatarDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+    signal.addEventListener(
+      'abort',
+      () => {
+        if (avatarDebounceTimer) clearTimeout(avatarDebounceTimer)
+      },
+      { once: true },
+    )
+
+    const emojisConfig = await loadEmojisConfig()
+    if (signal.aborted) return
+
+    const form = document.getElementById('comment-form') as HTMLFormElement
+
+    const contentTextarea = document.getElementById(
+      'comment-content',
+    ) as HTMLTextAreaElement
+    const charCount = document.getElementById('char-count') as HTMLElement
+    const nameInput = document.getElementById(
+      'comment-name',
+    ) as HTMLInputElement
+    const emailInput = document.getElementById(
+      'comment-email',
+    ) as HTMLInputElement
+    const websiteInput = document.getElementById(
+      'comment-website',
+    ) as HTMLInputElement
+    const avatarPreview = document.getElementById(
+      'avatar-preview',
+    ) as HTMLImageElement
+
+    const commentsLoading = document.getElementById(
+      'comments-loading',
+    ) as HTMLElement
+    const commentsList = document.getElementById('comments-list') as HTMLElement
+    const commentsEmpty = document.getElementById(
+      'comments-empty',
+    ) as HTMLElement
+    const commentsError = document.getElementById(
+      'comments-error',
+    ) as HTMLElement
+    const commentsCount = document.getElementById(
+      'comments-count',
+    ) as HTMLElement
+    const countNumber = document.getElementById('count-number') as HTMLElement
+    const retryBtn = document.getElementById('retry-load') as HTMLButtonElement
+    let toastContainer = document.getElementById(
+      'toast-container',
+    ) as HTMLElement
+    if (!toastContainer) {
+      toastContainer = document.createElement('div')
+      toastContainer.id = 'toast-container'
+      toastContainer.className =
+        'fixed bottom-10 left-1/2 z-50 flex -translate-x-1/2 flex-col gap-2 transition-all'
+      document.body.appendChild(toastContainer)
+    }
+
+    // 表情选择器
+    const emojiBtn = document.getElementById('emoji-btn') as HTMLButtonElement
+    const emojiPicker = document.getElementById('emoji-picker') as HTMLElement
+    const emojiTabs = document.getElementById('emoji-tabs') as HTMLElement
+    const emojiContent = document.getElementById('emoji-content') as HTMLElement
+
+    const packNames = Object.keys(emojisConfig)
+    let currentEmojiTarget: HTMLTextAreaElement | null = null
+
+    // 更新头像预览（带防抖）
+    function updateAvatarPreview() {
+      const email = emailInput.value.trim().toLowerCase()
+
+      avatarPreview.style.opacity = '0.5'
+
+      if (avatarDebounceTimer) {
+        clearTimeout(avatarDebounceTimer)
+      }
+
+      avatarDebounceTimer = setTimeout(() => {
+        if (email && email.includes('@')) {
+          const hash = md5(email)
+          avatarPreview.src = `https://weavatar.com/avatar/${hash}?d=identicon&s=80`
+        } else {
+          avatarPreview.src = 'https://weavatar.com/avatar/?d=mp&s=80'
+        }
+        avatarPreview.style.opacity = '1'
+      }, GRAVATAR_DEBOUNCE)
+    }
+
+    emailInput?.addEventListener('input', updateAvatarPreview, { signal })
+
+    // 初始化表情选择器
+    function initEmojiPicker() {
+      if (!emojiTabs || !emojiContent || packNames.length === 0) return
+
+      emojiTabs.innerHTML = packNames
+        .map((packKey, index) => {
+          const pack = emojisConfig[packKey]
+          return `
+          <button type="button" data-pack="${packKey}" title="${pack.name}"
+            class="rounded px-2 py-1 text-xs text-nowrap transition ${index === 0 ? 'bg-stone-100 text-stone-900 dark:bg-stone-700 dark:text-stone-100' : 'text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800'}">
+            ${pack.name}
+          </button>
+        `
+        })
+        .join('')
+
+      if (packNames.length > 0) {
+        renderEmojiPack(packNames[0])
+      }
+
+      emojiTabs.addEventListener(
+        'click',
+        (e) => {
+          const tab = (e.target as HTMLElement).closest(
+            '[data-pack]',
+          ) as HTMLElement
+          if (tab) {
+            const packKey = tab.dataset.pack || ''
+            emojiTabs.querySelectorAll('button').forEach((t) => {
+              const isActive = t.getAttribute('data-pack') === packKey
+              t.className = `rounded px-2 py-1 text-xs text-nowrap transition ${isActive ? 'bg-stone-100 text-stone-900 dark:bg-stone-700 dark:text-stone-100' : 'text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800'}`
+            })
+            renderEmojiPack(packKey)
+          }
+        },
+        { signal },
+      )
+    }
+
+    function renderEmojiPack(packKey: string) {
+      const pack = emojisConfig[packKey]
+      if (!pack || !emojiContent) return
+
+      const isImage = pack.type === 'image'
+      const size = pack.size || 24
+
+      const htmlPrefix = isImage
+        ? `<div class="grid gap-1" style="grid-template-columns: repeat(${size >= 60 ? 4 : size >= 40 ? 6 : 8}, minmax(0, 1fr));">`
+        : `<div class="flex flex-wrap gap-1">`
+
+      let html =
+        htmlPrefix +
+        Object.entries(pack.items)
+          .map(([name, value]) => {
+            const emojiCode = `:${packKey}_${name}:`
+            if (isImage) {
+              return `
+            <button type="button" data-emoji="${emojiCode}" title="${name}"
+              class="flex items-center justify-center rounded p-1 transition-all hover:bg-stone-100 active:scale-95 dark:hover:bg-stone-700">
+              <img alt="${name}" loading="lazy"
+                class="object-contain"
+                src="${value}" style="width:${size}px;height:${size}px;" />
+            </button>
+          `
+            } else {
+              // 颜文字样式优化
+              return `
+            <button type="button" data-emoji="${value}" title="${name}"
+              class="rounded px-2 py-1 text-sm transition-colors hover:bg-stone-100 dark:hover:bg-stone-700">
+              ${value}
+            </button>
+          `
+            }
+          })
+          .join('')
+
+      html += `</div>`
+      emojiContent.innerHTML = html
+    }
+
+    emojiContent?.addEventListener(
+      'click',
+      (e) => {
+        const item = (e.target as HTMLElement).closest(
+          '[data-emoji]',
+        ) as HTMLElement
+        const target = currentEmojiTarget || contentTextarea
+
+        if (item && target) {
+          const emoji = item.dataset.emoji || ''
+          const start = target.selectionStart
+          const end = target.selectionEnd
+          const text = target.value
+          target.value = text.substring(0, start) + emoji + text.substring(end)
+          target.selectionStart = target.selectionEnd = start + emoji.length
+          target.focus()
+
+          // 如果是主评论框，更新字数统计
+          if (target === contentTextarea) {
+            charCount.textContent = String(target.value.length)
+          }
+
+          emojiPicker?.classList.add('hidden')
+        }
+      },
+      { signal },
+    )
+
+    emojiBtn?.addEventListener(
+      'click',
+      (e) => {
+        e.stopPropagation()
+        currentEmojiTarget = contentTextarea
+
+        const container = emojiBtn.parentElement
+        if (container) {
+          if (!container.contains(emojiPicker)) {
+            container.appendChild(emojiPicker)
+            emojiPicker?.classList.remove('hidden')
+          } else {
+            emojiPicker?.classList.toggle('hidden')
+          }
+        }
+      },
+      { signal },
+    )
+
+    document.addEventListener(
+      'click',
+      (e) => {
+        if (
+          emojiPicker &&
+          !emojiPicker.contains(e.target as Node) &&
+          e.target !== emojiBtn &&
+          !emojiBtn?.contains(e.target as Node)
+        ) {
+          emojiPicker.classList.add('hidden')
+        }
+      },
+      { signal },
+    )
+
+    initEmojiPicker()
+
+    function loadSavedUserInfo() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY)
+        if (saved) {
+          const info: StoredUserInfo = JSON.parse(saved)
+          if (info.name) nameInput.value = info.name
+          if (info.email) {
+            emailInput.value = info.email
+            const hash = md5(info.email.toLowerCase().trim())
+            avatarPreview.src = `https://weavatar.com/avatar/${hash}?d=identicon&s=80`
+          }
+          if (info.website) websiteInput.value = info.website
+        }
+      } catch {
+        // 忽略解析错误
+      }
+    }
+
+    loadSavedUserInfo()
+
+    contentTextarea?.addEventListener(
+      'input',
+      () => {
+        const count = contentTextarea.value.length
+        charCount.textContent = String(count)
+      },
+      { signal },
+    )
+
+    function escapeHtml(text: string) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+    }
+
+    function getSuccessMessage(isReply: boolean) {
+      if (slug === 'messages') {
+        return isReply
+          ? '收到啦，已经接上这段聊天。同步需要半分钟。'
+          : '收到啦，欢迎来这里串门。同步需要半分钟。'
+      }
+
+      return isReply
+        ? '回复已收到，正在同步到评论区。'
+        : '评论已收到，正在同步到评论区。'
+    }
+
+    function showToast(message: string, type: 'success' | 'error' = 'success') {
+      const toast = document.createElement('div')
+      toast.className = `transform transition-all duration-300 ease-out translate-y-full opacity-0 flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-900 shadow-xl dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100`
+      const safeMessage = escapeHtml(message)
+
+      toast.innerHTML = `
+        ${
+          type === 'success'
+            ? '<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>'
+            : '<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>'
+        }
+        <span>${safeMessage}</span>
+      `
+      toastContainer.appendChild(toast)
+
+      // Animate in
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-full', 'opacity-0')
+      })
+
+      // Remove after delay
+      setTimeout(() => {
+        toast.classList.add('translate-y-full', 'opacity-0')
+        setTimeout(() => {
+          toast.remove()
+        }, 300)
+      }, 3000)
+    }
+
+    // 获取用户信息（优先从 localStorage，其次从主表单）
+    function getSavedUserInfo(): StoredUserInfo {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY)
+        if (saved) {
+          const info = JSON.parse(saved) as StoredUserInfo
+          return {
+            name: info.name || nameInput?.value || '',
+            email: info.email || emailInput?.value || '',
+            website: info.website || websiteInput?.value || '',
+          }
+        }
+      } catch {
+        // 忽略
+      }
+      return {
+        name: nameInput?.value || '',
+        email: emailInput?.value || '',
+        website: websiteInput?.value || '',
+      }
+    }
+
+    // 生成内联回复表单HTML
+    function createReplyFormHtml(
+      replyToId: number,
+      replyToName: string,
+    ): string {
+      // 使用 localStorage 中保存的用户信息，而不是直接从可能被重置的主表单获取
+      const userInfo = getSavedUserInfo()
+      return `
+        <form class="reply-form mt-3 rounded-lg border border-stone-200 p-3 dark:border-stone-700" data-reply-to="${replyToId}">
+          <input type="hidden" name="replyToId" value="${replyToId}" />
+          <input type="hidden" name="replyToName" value="${replyToName}" />
+          <input type="text" name="_gotcha" class="hidden" tabindex="-1" autocomplete="off" />
+
+          <div class="no-focus mb-2 grid grid-cols-1 gap-1 border-b border-stone-200 pb-2 sm:grid-cols-3 sm:gap-2 dark:border-stone-200/10">
+            <div class="flex items-center gap-2">
+              <label class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400">名称:</label>
+              <input name="name" type="text" maxlength="50" placeholder="必填" required value="${userInfo.name}"
+                class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500" />
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400">邮箱:</label>
+              <input name="email" type="email" placeholder="可选" value="${userInfo.email}"
+                class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500" />
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400">网站:</label>
+              <input name="website" type="url" placeholder="可选" value="${userInfo.website}"
+                class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500" />
+            </div>
+          </div>
+
+          <textarea name="content" maxlength="800" rows="3" required
+            placeholder="回复 @${replyToName} ..."
+            class="no-focus w-full resize-none border-0 bg-transparent text-[16px] leading-relaxed text-stone-900 outline-none placeholder:text-stone-400 dark:text-stone-100 dark:placeholder:text-stone-500"></textarea>
+
+          <div class="flex items-center justify-between gap-3">
+             <div class="relative flex items-center">
+              <button type="button" class="reply-emoji-btn inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-stone-100 hover:text-stone-700 active:scale-90 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                  <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                  <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+                表情
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" class="cancel-reply-btn inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-stone-100 hover:text-stone-700 active:scale-90 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200">
+                取消
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+              <button type="submit" class="submit-reply-btn inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-stone-100 hover:text-stone-700 active:scale-90 disabled:cursor-not-allowed disabled:opacity-50 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200">
+                <span>提交回复</span>
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                <svg class="hidden h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </form>
+      `
+    }
+
+    function getUserAgentInfo(uaString: string): string {
+      if (!uaString) return ''
+
+      // 截断过长的 UA 字符串用于回退显示
+      const truncate = (str: string, len = 40) => {
+        return str.length > len ? str.slice(0, len) + '…' : str
+      }
+
+      const parse = (ua: string) => {
+        let os = { name: 'Unknown', icon: '' }
+        let browser: { name: string; version: string; icon?: string } = {
+          name: 'Unknown',
+          version: '',
+        }
+
+        // OS Icons (Simplified paths)
+        const icons = {
+          windows:
+            '<path fill="currentColor" d="M2.75 7.189V2.865c0-.102 0-.115.115-.115h8.622c.128 0 .14 0 .14.128V11.5c0 .128 0 .128-.14.128H2.865c-.102 0-.115 0-.115-.116zM7.189 21.25H2.865c-.102 0-.115 0-.115-.116V12.59c0-.128 0-.128.128-.128h8.635c.102 0 .115 0 .115.115v8.57c0 .09 0 .103-.116.103zM21.25 7.189v4.31c0 .116 0 .116-.116.116h-8.557c-.102 0-.128 0-.128-.115V2.865c0-.09 0-.102.115-.102h8.48c.206 0 .206 0 .206.205zm-8.763 9.661v-4.273c0-.09 0-.115.103-.09h8.621c.026 0 0 .09 0 .142v8.518a.06.06 0 0 1-.017.06a.06.06 0 0 1-.06.017H12.54s-.09 0-.077-.09V16.85z"/>',
+          apple:
+            '<path fill="currentColor" d="M11.703 5.616c.03-.905.278-2.237 1.145-3.112c.805-.813 1.785-1.209 2.395-1.39a.347.347 0 0 1 .45.353c-.04.866-.268 2.158-.856 2.85c-.554.652-1.444 1.516-2.749 1.662a.348.348 0 0 1-.385-.363"></path><path fill="currentColor" d="M13.937 22.17c.627.24 1.26.482 1.833.482c1.227 0 4.798-2.83 4.926-5.768a.4.4 0 0 0-.215-.36c-.908-.508-2.392-1.774-2.443-3.615c-.06-2.146 1.017-3.85 1.832-4.555c.184-.159.247-.439.083-.617c-.742-.81-2.234-1.925-3.596-1.898c-.99.02-1.883.39-2.65.706c-.587.243-1.1.455-1.526.455c-.403 0-.887-.21-1.443-.453c-.748-.326-1.626-.708-2.61-.708c-1.824 0-5.428 1.513-5.428 7.352c0 3.095 3.195 9.543 5.892 9.461c.582 0 1.204-.24 1.822-.48c.608-.236 1.211-.47 1.767-.47c.537 0 1.143.233 1.756.468"></path>',
+          android:
+            '<path fill="currentColor" d="M17.6 11.48c0-.79-.64-1.43-1.43-1.43c-.79 0-1.43.64-1.43 1.43s.64 1.43 1.43 1.43s1.43-.64 1.43-1.43m-9.77 0c0-.79-.64-1.43-1.43-1.43c-.79 0-1.43.64-1.43 1.43s.64 1.43 1.43 1.43s1.43-.64 1.43-1.43m12.44-2.58l-1.67-2.91a.57.57 0 0 0-.78-.21a.58.58 0 0 0-.21.78l1.63 2.84A9.9 9.9 0 0 0 12 7.77c-2.64 0-5.06 1-6.94 2.65L6.68 7.57a.578.578 0 0 0-.78-.21a.57.57 0 0 0-.21.78l1.67 2.91A9.8 9.8 0 0 0 2 19.34h20c-.06-3.15-2.02-5.94-4.73-7.86"></path>',
+          linux:
+            '<path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8s8 3.59 8 8s-3.59 8-8 8"></path>',
+          chrome:
+            '<path fill="currentColor" d="M9.827 21.763C5.35 20.771 2 16.777 2 12c0-1.822.487-3.53 1.339-5.002l4.283 7.419a5 5 0 0 0 4.976 2.548zM12 22l4.287-7.425A5 5 0 0 0 17 12a4.98 4.98 0 0 0-1-3h5.542A10 10 0 0 1 22 12c0 5.523-4.477 10-10 10m2.572-8.455a3 3 0 0 1-5.17-.045l-.029-.05a3 3 0 1 1 5.225.05zm-9.94-8.306A9.97 9.97 0 0 1 12 2a10 10 0 0 1 8.662 5H12a5 5 0 0 0-4.599 3.034z"></path>',
+          safari:
+            '<g fill="none"><path stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2S2 6.477 2 12s4.477 10 10 10Z"/><path fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="m7.5 16.5l2.25-6.75L16.5 7.5l-2.25 6.75z"/><path fill="currentColor" fill-rule="evenodd" d="M12 13a1 1 0 1 0 0-2a1 1 0 0 0 0 2" clip-rule="evenodd"/></g>',
+        }
+
+        // OS Detection - iOS must be checked before macOS (iOS UA contains "Mac OS X")
+        if (/iPhone|iPad|iPod/i.test(ua))
+          os = { name: 'iOS', icon: icons.apple }
+        else if (/Android/i.test(ua))
+          os = { name: 'Android', icon: icons.android }
+        else if (/Windows/i.test(ua))
+          os = { name: 'Windows', icon: icons.windows }
+        else if (/Macintosh|Mac OS X/i.test(ua))
+          os = { name: 'macOS', icon: icons.apple }
+        else if (/Linux/i.test(ua)) os = { name: 'Linux', icon: icons.linux }
+
+        // Browser Detection - Order matters! Check specific browsers before generic ones
+        // Safari must be last because Chrome/Edge/etc. UA strings also contain "Safari"
+        if (/Edg/i.test(ua)) {
+          browser = { name: 'Edge', version: ua.match(/Edg\/(\d+)/)?.[1] || '' }
+        } else if (/OPR|Opera/i.test(ua)) {
+          browser = {
+            name: 'Opera',
+            version: ua.match(/(?:OPR|Opera)\/(\d+)/)?.[1] || '',
+          }
+        } else if (/Firefox/i.test(ua)) {
+          browser = {
+            name: 'Firefox',
+            version: ua.match(/Firefox\/(\d+)/)?.[1] || '',
+          }
+        } else if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) {
+          browser = {
+            name: 'Chrome',
+            version: ua.match(/Chrome\/(\d+)/)?.[1] || '',
+          }
+          browser.icon = icons.chrome
+        } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
+          browser = {
+            name: 'Safari',
+            version: ua.match(/Version\/(\d+)/)?.[1] || '',
+          }
+          browser.icon = icons.safari
+        }
+
+        return { os, browser }
+      }
+
+      const info = parse(uaString)
+
+      // 如果无法识别 OS 和浏览器，显示截断的 UA 字符串作为回退
+      if (info.os.name === 'Unknown' && info.browser.name === 'Unknown') {
+        return `<span class="text-[10px] text-stone-400 opacity-60 dark:text-stone-500">${truncate(uaString)}</span>`
+      }
+
+      const browserIcon = info.browser.icon
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" class="h-3 w-3">${info.browser.icon}</svg>`
+        : ''
+
+      return `
+        <div style="display: contents;">
+          <div class="group relative inline-flex items-center gap-1 text-[10px] text-stone-400 opacity-60 dark:text-stone-500">
+            ${
+              info.os.name !== 'Unknown'
+                ? `
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" class="h-3 w-3">
+                ${info.os.icon || '<path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0"/>'}
+              </svg>
+              <span>${info.os.name}</span>
+            `
+                : ''
+            }
+            ${
+              info.browser.name !== 'Unknown'
+                ? `
+              ${browserIcon}
+              <span>${info.browser.name}${info.browser.version ? ` <span class="mx-px">${info.browser.version}</span>` : ''}</span>
+            `
+                : ''
+            }
+          </div>
+        </div>
+      `
+    }
+
+    function formatRelativeTime(dateStr: string): string {
+      const date = new Date(dateStr)
+      const now = new Date()
+      const diff = now.getTime() - date.getTime()
+
+      const minutes = Math.floor(diff / 60000)
+      const hours = Math.floor(diff / 3600000)
+      const days = Math.floor(diff / 86400000)
+
+      if (minutes < 1) return '刚刚'
+      if (minutes < 60) return `${minutes} 分钟前`
+      if (hours < 24) return `${hours} 小时前`
+      if (days < 7) return `${days} 天前`
+
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hour = String(date.getHours()).padStart(2, '0')
+      const minute = String(date.getMinutes()).padStart(2, '0')
+      const time = `${hour}:${minute}`
+
+      if (date.getFullYear() === now.getFullYear()) {
+        return `${month}月${day}日 ${time}`
+      }
+      return `${date.getFullYear()}年${month}月${day}日 ${time}`
+    }
+
+    function getOwnerAvatarMark(isOwner?: boolean): string {
+      return isOwner
+        ? '<span class="comment-owner-mark" title="博主标识" aria-label="博主标识"></span>'
+        : ''
+    }
+
+    // 渲染单条评论
+    function renderComment(comment: Comment, isReply = false): string {
+      const avatarSize = isReply ? 'h-7 w-7' : 'h-9 w-9'
+      const nameSize = isReply ? 'text-xs' : 'text-sm'
+      const timeSize = isReply ? 'text-[10px]' : 'text-xs'
+
+      // 博主徽章
+      const ownerBadge = comment.isOwner
+        ? `<span class="bg-stone-100 text-stone-700 rounded px-1 py-px text-[10px] dark:bg-stone-800 dark:text-stone-300">博主</span>`
+        : ''
+      const featuredMark = comment.featured
+        ? `<span class="comment-featured-mark" title="精选留言" aria-label="精选留言">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m12 3.75 2.45 4.96 5.47.8-3.96 3.86.93 5.45L12 16.25l-4.89 2.57.93-5.45-3.96-3.86 5.47-.8L12 3.75z"></path>
+            </svg>
+          </span>`
+        : ''
+
+      const nameHtml = comment.website
+        ? `<a href="${comment.website}" target="_blank" rel="noopener noreferrer" class="font-medium text-stone-900 underline decoration-dotted underline-offset-2 hover:decoration-solid ${nameSize} dark:text-stone-100">${comment.name}</a>`
+        : `<span class="font-medium text-stone-900 ${nameSize} dark:text-stone-100">${comment.name}</span>`
+
+      const replyToHtml = comment.replyTo
+        ? `<span class="text-stone-400 dark:text-stone-500">回复</span>
+           <span class="font-medium text-stone-600 dark:text-stone-400">${comment.replyTo.name}</span>`
+        : ''
+
+      const contentHtml = parseMarkdown(comment.content, emojisConfig)
+      // const lineClamp = isReply ? 'line-clamp-3' : 'line-clamp-7'
+      const lineClamp = isReply ? '' : 'line-clamp-7'
+
+      // 渲染子回复 - 后端已按时间正序排序（最早的在前），前端直接使用
+      const repliesHtml =
+        comment.replies && comment.replies.length > 0
+          ? `<div class="replies-container mt-3 hidden" data-parent-id="${comment.id}">
+            <div class="ml-4 space-y-2 divide-y divide-stone-200 border-l border-stone-200 pl-4 dark:divide-stone-700 dark:border-stone-700">
+              ${comment.replies
+                .map(
+                  (reply) => `
+                <div class="comment-reply-item pt-3 first:pt-0">
+                  <div class="mb-2">
+                    <div class="flex items-center gap-3">
+                      <div class="relative shrink-0">
+                        <img alt="${reply.name}" referrerpolicy="no-referrer" loading="lazy" width="28" height="28"
+                          class="comment-avatar rounded-full object-cover h-7 w-7"
+                          src="${reply.avatar}" />
+                        ${getOwnerAvatarMark(reply.isOwner)}
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          ${
+                            reply.website
+                              ? `<a href="${reply.website}" target="_blank" rel="noopener noreferrer" class="font-medium text-stone-900 underline decoration-dotted underline-offset-2 hover:decoration-solid text-xs dark:text-stone-100">${reply.name}</a>`
+                              : `<span class="font-medium text-stone-900 text-xs dark:text-stone-100">${reply.name}</span>`
+                          }
+                          ${reply.isOwner ? `<span class="bg-stone-100 text-stone-700 rounded px-1 py-px text-[10px] dark:bg-stone-800 dark:text-stone-300">博主</span>` : ''}
+                          ${reply.replyTo ? `<span class="text-stone-400 text-[10px] hidden dark:text-stone-500">回复 ${reply.replyTo.name}</span>` : ''}
+                        </div>
+                        <div class="text-stone-400 mt-0.5 flex items-center gap-2 text-[10px] dark:text-stone-500">
+                          <time datetime="${reply.createdAt}" title="${new Date(reply.createdAt).toLocaleString('zh-CN')}">
+                            ${formatRelativeTime(reply.createdAt)}
+                          </time>
+                          ${getUserAgentInfo(reply.userAgent || '')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="message-content prose prose-sm max-w-none dark:prose-invert">
+                    ${parseMarkdown(reply.content, emojisConfig)}
+                  </div>
+                </div>
+              `,
+                )
+                .join('')}
+            </div>
+          </div>`
+          : ''
+
+      const repliesCount = comment.replies?.length || 0
+      const hasReplies = repliesCount > 0
+
+      if (isReply) {
+        return `
+          <div class="p-3">
+            <div class="mb-2">
+              <div class="flex items-center gap-3">
+                <div class="relative shrink-0">
+                  <img alt="${comment.name}" referrerpolicy="no-referrer" loading="lazy" width="28" height="28"
+                    class="comment-avatar rounded-full object-cover ${avatarSize}"
+                    src="${comment.avatar}" />
+                  ${getOwnerAvatarMark(comment.isOwner)}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    ${nameHtml}
+                    ${ownerBadge}
+                    ${replyToHtml}
+                  </div>
+                  <div class="text-stone-400 mt-0.5 flex items-center gap-2 ${timeSize} dark:text-stone-500">
+                    <time datetime="${comment.createdAt}" title="${new Date(comment.createdAt).toLocaleString('zh-CN')}">
+                      ${formatRelativeTime(comment.createdAt)}
+                    </time>
+                    ${getUserAgentInfo(comment.userAgent || '')}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="message-content prose prose-sm max-w-none ${lineClamp} dark:prose-invert">
+              ${contentHtml}
+            </div>
+          </div>
+        `
+      }
+
+      return `
+        <article class="comment-card group relative rounded-lg border p-4 transition" data-id="${comment.id}" data-name="${comment.name}"${comment.isPending ? ' data-pending="true"' : ''}>
+          ${featuredMark}
+          <div class="mb-3 ${comment.featured ? 'pr-8' : ''}">
+            <div class="flex items-center gap-3">
+              <div class="relative shrink-0">
+                <img alt="${comment.name}" referrerpolicy="no-referrer" loading="lazy" width="36" height="36"
+                  class="comment-avatar rounded-full object-cover ${avatarSize}"
+                  src="${comment.avatar}" />
+                ${getOwnerAvatarMark(comment.isOwner)}
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  ${nameHtml}
+                  ${ownerBadge}
+                  ${replyToHtml}
+                </div>
+                <div class="text-stone-400 mt-0.5 flex items-center gap-2 ${timeSize} dark:text-stone-500">
+                  <time datetime="${comment.createdAt}" title="${new Date(comment.createdAt).toLocaleString('zh-CN')}">
+                    ${formatRelativeTime(comment.createdAt)}
+                  </time>
+                  ${getUserAgentInfo(comment.userAgent || '')}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="relative">
+            <div class="message-content prose prose-sm max-w-none ${lineClamp} dark:prose-invert">
+              ${contentHtml}
+            </div>
+          </div>
+          <div class="mt-3 flex items-center justify-between border-t border-stone-200 pt-3 dark:border-stone-700">
+            ${
+              hasReplies
+                ? `
+              <button type="button" class="toggle-replies-btn inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-stone-100 hover:text-stone-700 active:scale-90 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200" data-target="${comment.id}" data-expanded="false">
+                <span class="toggle-text">展开回复 (${repliesCount})</span>
+                <svg class="toggle-icon h-3.5 w-3.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <polyline points="6 9 12 15 18 9" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                </svg>
+              </button>
+            `
+                : '<div></div>'
+            }
+            ${
+              comment.isPending
+                ? `<button type="button" class="reply-btn inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-400 transition-all cursor-not-allowed opacity-50 dark:text-stone-500" disabled title="评论正在同步中，请稍候...">
+                  回复
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 14 4 9 9 4"></polyline>
+                    <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                  </svg>
+                </button>`
+                : `<button type="button" class="reply-btn inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-stone-100 hover:text-stone-700 active:scale-90 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200">
+                  回复
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 14 4 9 9 4"></polyline>
+                    <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                  </svg>
+                </button>`
+            }
+          </div>
+          <div class="reply-form-container"></div>
+          ${repliesHtml}
+        </article>
+      `
+    }
+
+    function isLocalDevHost(): boolean {
+      return (
+        location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+      )
+    }
+
+    function getMockComments(currentSlug: string): Comment[] {
+      const hoursAgo = (hours: number) =>
+        new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
+      const isMessages = currentSlug === 'messages'
+
+      return [
+        {
+          id: 990002,
+          name: 'Viki',
+          avatar: 'https://weavatar.com/avatar/?d=identicon&s=80',
+          website: 'https://blog.viki.moe',
+          content: isMessages
+            ? '这是本地开发模式的模拟留言，用来检查留言板卡片和回复展开后的样式。'
+            : '这是本地开发模式的模拟文章评论，用来检查文章评论区样式。',
+          createdAt: hoursAgo(2),
+          featured: true,
+          userAgent:
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
+          replies: [
+            {
+              id: 990003,
+              name: ownerName || 'Site Owner',
+              avatar: '/favicon.png',
+              website: 'https://example.com',
+              content:
+                '回复区域保持小头像、左边线和缩进，不会变成第二张大卡片。',
+              createdAt: hoursAgo(1),
+              replyTo: { id: 990002, name: 'Viki' },
+              isOwner: true,
+              userAgent:
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+            },
+            {
+              id: 990007,
+              name: '青柠',
+              avatar:
+                'https://weavatar.com/avatar/7c6a180b36896a0a8c02787eeafb0e4c?d=identicon&s=80',
+              content:
+                '这个缩进刚好，回复多一点也还能看清是谁接着谁说话。:fufu_3:',
+              createdAt: hoursAgo(0.5),
+              replyTo: { id: 990002, name: 'Viki' },
+              userAgent:
+                'Mozilla/5.0 (Android 15; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Mobile Safari/537.36',
+            },
+          ],
+        },
+        {
+          id: 990006,
+          name: ownerName || 'Site Owner',
+          avatar: '/favicon.png',
+          website: 'https://example.com',
+          content:
+            '这是一条博主自己的模拟留言，用来检查头像标识和「博主」徽章是否协调。\n:fufu_3:',
+          createdAt: hoursAgo(26),
+          isOwner: true,
+          userAgent:
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
+          replies: [],
+        },
+        {
+          id: 990005,
+          name: 'Mika',
+          avatar:
+            'https://weavatar.com/avatar/a8f5f167f44f4964e6c998dee827110c?d=identicon&s=80',
+          website: 'https://example.com',
+          content:
+            '来试一下长一点的留言：支持 **Markdown**、`inline code`，也可以放一点换行。\n第二段应该保持舒服的行高，不要把卡片撑得太奇怪。',
+          createdAt: hoursAgo(50),
+          userAgent:
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/147.0',
+          replies: [
+            {
+              id: 990008,
+              name: ownerName || 'Site Owner',
+              avatar: '/favicon.png',
+              website: 'https://example.com',
+              content: '收到，这条主要用来看多段内容和代码样式。',
+              createdAt: hoursAgo(48),
+              replyTo: { id: 990005, name: 'Mika' },
+              isOwner: true,
+              userAgent:
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
+            },
+          ],
+        },
+        {
+          id: 990004,
+          name: '小夏',
+          avatar:
+            'https://weavatar.com/avatar/45c48cce2e2d7fbdea1afc51c7c6ad26?d=identicon&s=80',
+          content:
+            '这个留言板比很多第三方评论系统清爽，像是站点自己长出来的部分。',
+          createdAt: hoursAgo(24 * 8 + 3),
+          userAgent:
+            'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+          replies: [],
+        },
+        {
+          id: 990001,
+          name: '匿名',
+          avatar: 'https://weavatar.com/avatar/?d=mp&s=80',
+          content: '没有启动 Vercel Functions 时，bun dev 会展示这些模拟数据。',
+          createdAt: hoursAgo(8),
+          userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edg/147.0.0.0 Safari/537.36',
+          replies: [],
+        },
+      ]
+    }
+
+    function bindRenderedCommentActions() {
+      // 绑定回复按钮事件
+      commentsList.querySelectorAll('.reply-btn').forEach((btn) => {
+        btn.addEventListener(
+          'click',
+          (e) => {
+            const button = (e.target as HTMLElement).closest(
+              '.reply-btn',
+            ) as HTMLButtonElement
+            const article = button.closest('article')
+            if (article) {
+              handleReplyClick(article as HTMLElement, button)
+            }
+          },
+          { signal },
+        )
+      })
+
+      // 绑定展开/收起回复事件
+      commentsList.querySelectorAll('.toggle-replies-btn').forEach((btn) => {
+        btn.addEventListener(
+          'click',
+          (e) => {
+            const button = (e.target as HTMLElement).closest(
+              '.toggle-replies-btn',
+            ) as HTMLButtonElement
+            if (!button) return
+
+            const targetId = button.dataset.target
+            const isExpanded = button.dataset.expanded === 'true'
+            const container = commentsList.querySelector(
+              `.replies-container[data-parent-id="${targetId}"]`,
+            )
+
+            if (container) {
+              if (isExpanded) {
+                container.classList.add('hidden')
+                button.dataset.expanded = 'false'
+                const textEl = button.querySelector('.toggle-text')
+                const iconEl = button.querySelector('.toggle-icon')
+                if (textEl) {
+                  const count = container.querySelectorAll(
+                    '.comment-reply-item',
+                  ).length
+                  textEl.textContent = `展开回复 (${count})`
+                }
+                if (iconEl) iconEl.classList.remove('rotate-180')
+              } else {
+                container.classList.remove('hidden')
+                button.dataset.expanded = 'true'
+                const textEl = button.querySelector('.toggle-text')
+                const iconEl = button.querySelector('.toggle-icon')
+                if (textEl) {
+                  const count = container.querySelectorAll(
+                    '.comment-reply-item',
+                  ).length
+                  textEl.textContent = `收起回复 (${count})`
+                }
+                if (iconEl) iconEl.classList.add('rotate-180')
+              }
+            }
+          },
+          { signal },
+        )
+      })
+    }
+
+    function displayComments(comments: Comment[]) {
+      commentsLoading.classList.add('hidden')
+
+      if (comments.length === 0) {
+        commentsEmpty.classList.remove('hidden')
+        return
+      }
+
+      // 只统计顶层评论数量
+      const totalCount = comments.length
+
+      commentsList.innerHTML = comments
+        .map((c) => renderComment(c, false))
+        .join('')
+      commentsList.classList.remove('hidden')
+      countNumber.textContent = String(totalCount)
+      commentsCount.classList.remove('hidden')
+      bindRenderedCommentActions()
+    }
+
+    // 加载评论
+    async function loadComments() {
+      try {
+        commentsLoading.classList.remove('hidden')
+        commentsList.classList.add('hidden')
+        commentsEmpty.classList.add('hidden')
+        commentsError.classList.add('hidden')
+        commentsCount.classList.add('hidden')
+
+        const response = await fetch(
+          `/api/comments?slug=${encodeURIComponent(slug!)}`,
+          { signal },
+        )
+
+        if (signal.aborted) return
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch comments')
+        }
+
+        const contentType = response.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+          throw new Error('Comments API did not return JSON')
+        }
+
+        const data = await response.json()
+        let comments: Comment[] = data.comments || []
+        if (signal.aborted) return
+
+        // 合并本地待确认评论
+        comments = mergeWithPendingComments(comments, slug!)
+
+        // 按最新发布在前排序（降序）
+        comments = comments.slice().sort((a, b) => {
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        })
+
+        displayComments(comments)
+      } catch (error) {
+        if (signal.aborted) return
+
+        if (isLocalDevHost()) {
+          console.warn('Comments API is unavailable in local dev:', error)
+          const mockComments = mergeWithPendingComments(
+            getMockComments(slug || 'messages'),
+            slug!,
+          )
+          displayComments(mockComments)
+        } else {
+          console.error('Load comments error:', error)
+          commentsLoading.classList.add('hidden')
+          commentsError.classList.remove('hidden')
+        }
+      }
+    }
+
+    retryBtn?.addEventListener('click', loadComments, { signal })
+
+    // 处理回复按钮点击（提取为函数以便复用）
+    function handleReplyClick(
+      article: HTMLElement,
+      button?: HTMLButtonElement,
+    ) {
+      // 检查是否是临时评论或待同步评论，如果是则不允许回复
+      if (
+        (article as HTMLElement).dataset.temp === 'true' ||
+        (article as HTMLElement).dataset.pending === 'true'
+      ) {
+        showToast('评论正在同步中，请稍候...', 'success')
+        return
+      }
+
+      const replyBtn = button || article.querySelector('.reply-btn')
+      const container = article.querySelector('.reply-form-container')
+      if (!container || !replyBtn) return
+
+      // 如果已经打开，则关闭
+      if (container.innerHTML !== '') {
+        container.innerHTML = ''
+        replyBtn.innerHTML = `回复 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>`
+        return
+      }
+
+      // 关闭其他打开的回复框
+      document
+        .querySelectorAll('.reply-form-container')
+        .forEach((el) => (el.innerHTML = ''))
+      document
+        .querySelectorAll('.reply-btn')
+        .forEach(
+          (el) =>
+            (el.innerHTML = `回复 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>`),
+        )
+
+      const id = parseInt(article.dataset.id || '0')
+      const name = article.dataset.name || ''
+      container.innerHTML = createReplyFormHtml(id, name)
+      replyBtn.innerHTML = `取消回复 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`
+
+      // 绑定新表单的事件
+      const form = container.querySelector('form')
+      const cancelBtn = container.querySelector('.cancel-reply-btn')
+      const emojiBtnReply = container.querySelector('.reply-emoji-btn')
+      const textarea = container.querySelector('textarea')
+
+      if (form) {
+        form.addEventListener('submit', (ev) => submitComment(ev, form), {
+          signal,
+        })
+      }
+
+      if (cancelBtn) {
+        cancelBtn.addEventListener(
+          'click',
+          () => {
+            container.innerHTML = ''
+            replyBtn.innerHTML = `回复 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>`
+          },
+          { signal },
+        )
+      }
+
+      if (emojiBtnReply && textarea) {
+        emojiBtnReply.addEventListener(
+          'click',
+          (ev) => {
+            ev.stopPropagation()
+            currentEmojiTarget = textarea as HTMLTextAreaElement
+
+            const emojiContainer = emojiBtnReply.parentElement
+            if (emojiContainer) {
+              if (!emojiContainer.contains(emojiPicker)) {
+                emojiContainer.appendChild(emojiPicker)
+                emojiPicker.classList.remove('hidden')
+              } else {
+                emojiPicker.classList.toggle('hidden')
+              }
+            }
+          },
+          { signal },
+        )
+      }
+    }
+
+    // 保存待确认评论并立即显示
+    function saveAndDisplayComment(
+      payload: CommentPayload,
+      isReply: boolean,
+      isVerifiedOwner: boolean = false,
+    ) {
+      const now = Date.now()
+      const createdAt = new Date().toISOString()
+
+      // 保存到 localStorage
+      const pendingComment: PendingComment = {
+        slug: slug!,
+        id: now,
+        name: payload.name,
+        email: payload.email,
+        website: payload.website,
+        content: payload.content,
+        createdAt,
+        replyToId: payload.replyToId ? parseInt(payload.replyToId) : undefined,
+        replyToName: payload.replyToName,
+        submittedAt: now,
+        isOwner: isVerifiedOwner,
+        userAgent: navigator.userAgent,
+      }
+      addPendingComment(pendingComment)
+
+      // 立即在页面上显示
+      const tempComment: Comment = pendingToComment(pendingComment)
+
+      try {
+        if (isReply && payload.replyToId) {
+          // 这是一个回复，添加到父评论的 replies 中
+          const articles = commentsList.querySelectorAll('article[data-id]')
+          for (const article of articles) {
+            const parentId = parseInt(
+              (article as HTMLElement).dataset.id || '0',
+            )
+            if (parentId === parseInt(payload.replyToId)) {
+              // 找到对应的 replies-container
+              const repliesContainer = article.querySelector(
+                `.replies-container[data-parent-id="${parentId}"]`,
+              )
+              if (repliesContainer) {
+                // 如果 replies 容器存在但是隐藏的，先展开它
+                if (repliesContainer.classList.contains('hidden')) {
+                  repliesContainer.classList.remove('hidden')
+                  const toggleBtn = article.querySelector('.toggle-replies-btn')
+                  if (toggleBtn) {
+                    toggleBtn.setAttribute('data-expanded', 'true')
+                    const textEl = toggleBtn.querySelector('.toggle-text')
+                    const iconEl = toggleBtn.querySelector('.toggle-icon')
+                    if (textEl) textEl.textContent = '收起回复 (1)'
+                    if (iconEl) iconEl.classList.add('rotate-180')
+                  }
+                }
+
+                // 在回复列表末尾插入新回复（因为回复按时间正序排列）
+                const repliesContent = repliesContainer.querySelector('.ml-4')
+                if (repliesContent) {
+                  const tempReplyHtml = `
+                    <div class="comment-reply-item pt-3 first:pt-0" data-temp-id="${tempComment.id}">
+                      <div class="mb-2">
+                        <div class="flex items-center gap-3">
+                          <div class="relative shrink-0">
+                            <img alt="${tempComment.name}" referrerpolicy="no-referrer" loading="lazy" width="28" height="28"
+                              class="comment-avatar rounded-full object-cover h-7 w-7"
+                              src="${tempComment.avatar}" />
+                            ${getOwnerAvatarMark(tempComment.isOwner)}
+                          </div>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                              ${
+                                tempComment.website
+                                  ? `<a href="${tempComment.website}" target="_blank" rel="noopener noreferrer" class="font-medium text-stone-900 underline decoration-dotted underline-offset-2 hover:decoration-solid text-xs dark:text-stone-100">${tempComment.name}</a>`
+                                  : `<span class="font-medium text-stone-900 text-xs dark:text-stone-100">${tempComment.name}</span>`
+                              }
+                              ${tempComment.isOwner ? '<span class="bg-stone-100 text-stone-700 rounded px-1 py-px text-[10px] dark:bg-stone-800 dark:text-stone-300">博主</span>' : ''}
+                              <span class="text-stone-400 text-[10px] dark:text-stone-500">回复 ${payload.replyToName}</span>
+                            </div>
+                            <div class="text-stone-400 mt-0.5 flex items-center gap-2 text-[10px] dark:text-stone-500">
+                              <span>刚刚</span>
+                              ${getUserAgentInfo(navigator.userAgent)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="message-content prose prose-sm max-w-none dark:prose-invert">
+                        ${parseMarkdown(tempComment.content, emojisConfig)}
+                      </div>
+                    </div>
+                  `
+                  repliesContent.insertAdjacentHTML('beforeend', tempReplyHtml)
+
+                  // 更新回复计数
+                  const toggleBtn = article.querySelector('.toggle-replies-btn')
+                  if (toggleBtn) {
+                    const textEl = toggleBtn.querySelector('.toggle-text')
+                    if (textEl) {
+                      const currentCount = repliesContent.querySelectorAll(
+                        '.comment-reply-item',
+                      ).length
+                      textEl.textContent = `收起回复 (${currentCount})`
+                    }
+                  }
+                }
+              } else {
+                // 如果没有 replies 容器，说明这是第一条回复，需要创建容器
+                const tempReplyHtml = `
+                  <div class="replies-container mt-3" data-parent-id="${parentId}">
+                    <div class="ml-4 space-y-2 divide-y divide-stone-200 border-l border-stone-200 pl-4 dark:divide-stone-700 dark:border-stone-700">
+                      <div class="comment-reply-item pt-3 first:pt-0" data-temp-id="${tempComment.id}">
+                        <div class="mb-2">
+                          <div class="flex items-center gap-3">
+                            <div class="relative shrink-0">
+                              <img alt="${tempComment.name}" referrerpolicy="no-referrer" loading="lazy" width="28" height="28"
+                                class="comment-avatar rounded-full object-cover h-7 w-7"
+                                src="${tempComment.avatar}" />
+                              ${getOwnerAvatarMark(tempComment.isOwner)}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                              <div class="flex items-center gap-2">
+                                ${
+                                  tempComment.website
+                                    ? `<a href="${tempComment.website}" target="_blank" rel="noopener noreferrer" class="font-medium text-stone-900 underline decoration-dotted underline-offset-2 hover:decoration-solid text-xs dark:text-stone-100">${tempComment.name}</a>`
+                                    : `<span class="font-medium text-stone-900 text-xs dark:text-stone-100">${tempComment.name}</span>`
+                                }
+                                ${tempComment.isOwner ? '<span class="bg-stone-100 text-stone-700 rounded px-1 py-px text-[10px] dark:bg-stone-800 dark:text-stone-300">博主</span>' : ''}
+                                <span class="text-stone-400 text-[10px] dark:text-stone-500">回复 ${payload.replyToName}</span>
+                              </div>
+                              <div class="text-stone-400 mt-0.5 flex items-center gap-2 text-[10px] dark:text-stone-500">
+                                <span>刚刚</span>
+                                ${getUserAgentInfo(navigator.userAgent)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="message-content prose prose-sm max-w-none dark:prose-invert">
+                          ${parseMarkdown(tempComment.content, emojisConfig)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `
+                const replyFormContainer = article.querySelector(
+                  '.reply-form-container',
+                )
+                if (replyFormContainer) {
+                  replyFormContainer.insertAdjacentHTML(
+                    'afterend',
+                    tempReplyHtml,
+                  )
+
+                  // 添加展开/收起按钮
+                  const buttonContainer = article.querySelector(
+                    '.mt-3.flex.items-center.justify-between',
+                  )
+                  if (
+                    buttonContainer &&
+                    buttonContainer.firstElementChild?.tagName === 'DIV'
+                  ) {
+                    buttonContainer.firstElementChild.outerHTML = `
+                      <button type="button" class="toggle-replies-btn inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-500 transition-all hover:bg-stone-100 hover:text-stone-700 active:scale-90 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200" data-target="${parentId}" data-expanded="true">
+                        <span class="toggle-text">收起回复 (1)</span>
+                        <svg class="toggle-icon h-3.5 w-3.5 transition-transform rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <polyline points="6 9 12 15 18 9" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                        </svg>
+                      </button>
+                    `
+                  }
+                }
+              }
+              break
+            }
+          }
+        } else {
+          // 这是一个主评论，添加到评论列表顶部
+          const tempCommentHtml = `
+            <article class="comment-card group rounded-lg border p-4 transition" data-id="${tempComment.id}" data-name="${tempComment.name}" data-temp="true">
+              <div class="mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="relative shrink-0">
+                    <img alt="${tempComment.name}" referrerpolicy="no-referrer" loading="lazy" width="36" height="36"
+                      class="comment-avatar rounded-full object-cover h-9 w-9"
+                      src="${tempComment.avatar}" />
+                    ${getOwnerAvatarMark(tempComment.isOwner)}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      ${
+                        tempComment.website
+                          ? `<a href="${tempComment.website}" target="_blank" rel="noopener noreferrer" class="font-medium text-stone-900 underline decoration-dotted underline-offset-2 hover:decoration-solid text-sm dark:text-stone-100">${tempComment.name}</a>`
+                          : `<span class="font-medium text-stone-900 text-sm dark:text-stone-100">${tempComment.name}</span>`
+                      }
+                      ${tempComment.isOwner ? '<span class="bg-stone-100 text-stone-700 rounded px-1 py-px text-[10px] dark:bg-stone-800 dark:text-stone-300">博主</span>' : ''}
+                    </div>
+                    <div class="text-stone-400 mt-0.5 flex items-center gap-2 text-xs dark:text-stone-500">
+                      <span>刚刚</span>
+                      ${getUserAgentInfo(navigator.userAgent)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="relative">
+                <div class="message-content prose prose-sm max-w-none line-clamp-7 dark:prose-invert">
+                  ${parseMarkdown(tempComment.content, emojisConfig)}
+                </div>
+              </div>
+              <div class="mt-3 flex items-center justify-between border-t border-stone-200 pt-3 dark:border-stone-700">
+                <div></div>
+                <button type="button" class="reply-btn inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-stone-400 transition-all cursor-not-allowed opacity-50 dark:text-stone-500" disabled title="评论正在提交中，请稍候...">
+                  回复
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 14 4 9 9 4"></polyline>
+                    <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="reply-form-container"></div>
+            </article>
+          `
+
+          // 如果评论列表是空的，先显示它
+          if (commentsList.classList.contains('hidden')) {
+            commentsEmpty.classList.add('hidden')
+            commentsList.classList.remove('hidden')
+            commentsCount.classList.remove('hidden')
+          }
+
+          commentsList.insertAdjacentHTML('afterbegin', tempCommentHtml)
+
+          // 临时评论的回复按钮已被禁用，不需要绑定事件
+          // 当评论被真实加载后，会通过 loadComments 重新渲染并绑定事件
+
+          // 更新评论计数
+          const currentCount = parseInt(countNumber.textContent || '0')
+          countNumber.textContent = String(currentCount + 1)
+        }
+      } catch (error) {
+        console.error('Save and display comment error:', error)
+      }
+    }
+
+    async function submitComment(e: Event, targetForm: HTMLFormElement) {
+      e.preventDefault()
+
+      const formData = new FormData(targetForm)
+      const name = formData.get('name') as string
+      const email = (formData.get('email') as string) || undefined
+
+      const isOwnerName = ownerName !== '' && name === ownerName
+      const isOwnerEmail = ownerEmail !== '' && email === ownerEmail
+
+      // 检查是否需要博主验证（名称或邮箱任一匹配都需要验证）
+      let ownerToken: string | undefined = undefined
+      let isVerifiedOwner = false
+
+      if (isOwnerName || isOwnerEmail) {
+        const storedToken = localStorage.getItem('owner_token')
+        if (!storedToken) {
+          const token = prompt('名称或邮箱与博主相同，请输入验证 token：')
+          if (!token) {
+            showToast('需要验证博主身份', 'error')
+            return
+          }
+          ownerToken = token
+        } else {
+          ownerToken = storedToken
+        }
+        // 只有名称和邮箱都匹配才是真正的博主
+        isVerifiedOwner = isOwnerName && isOwnerEmail
+      }
+
+      const replyToIdRaw = (formData.get('replyToId') as string) || undefined
+
+      // 检查 replyToId 是否为临时 id（时间戳格式，大于 1600000000000）
+      // GitHub comment id 通常是较小的数字，而临时 id 是 Date.now() 返回的毫秒时间戳
+      if (replyToIdRaw) {
+        const replyToIdNum = parseInt(replyToIdRaw)
+        if (replyToIdNum > 1600000000000) {
+          showToast('该评论正在同步中，请刷新页面后再回复', 'error')
+          return
+        }
+      }
+
+      const payload: CommentPayload = {
+        slug,
+        title,
+        name,
+        email,
+        website: (formData.get('website') as string) || undefined,
+        content: formData.get('content') as string,
+        replyToId: replyToIdRaw,
+        replyToName: (formData.get('replyToName') as string) || undefined,
+        _gotcha: formData.get('_gotcha') as string,
+        userAgent: navigator.userAgent,
+      }
+
+      if (ownerToken) {
+        payload.ownerToken = ownerToken
+      }
+
+      const isMainForm = targetForm.id === 'comment-form'
+      const submitBtnCurrent = targetForm.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement
+      const submitTextCurrent = submitBtnCurrent.querySelector('span')
+      const submitSpinnerCurrent =
+        submitBtnCurrent.querySelector('.animate-spin')
+      const submitIconCurrent = submitBtnCurrent.querySelector(
+        'svg:not(.animate-spin)',
+      )
+      const nameInputCurrent = targetForm.querySelector(
+        'input[name="name"]',
+      ) as HTMLInputElement
+      const contentInputCurrent = targetForm.querySelector(
+        'textarea',
+      ) as HTMLTextAreaElement
+
+      if (!payload.name?.trim()) {
+        showToast('请留下称呼', 'error')
+        nameInputCurrent?.focus()
+        return
+      }
+
+      if (!payload.content?.trim()) {
+        showToast('内容不能为空', 'error')
+        contentInputCurrent?.focus()
+        return
+      }
+
+      // 先保存用户信息到 localStorage（在 reset 表单之前）
+      const userInfoToSave: StoredUserInfo = {
+        name: payload.name,
+        email: payload.email || '',
+        website: payload.website,
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(userInfoToSave))
+
+      // 如果是回复表单，同步更新主表单的值
+      if (!isMainForm) {
+        if (nameInput) nameInput.value = userInfoToSave.name
+        if (emailInput) emailInput.value = userInfoToSave.email
+        if (websiteInput && userInfoToSave.website)
+          websiteInput.value = userInfoToSave.website
+      }
+
+      submitBtnCurrent.disabled = true
+      if (submitTextCurrent) submitTextCurrent.textContent = '发送中...'
+      submitIconCurrent?.classList.add('hidden')
+      submitSpinnerCurrent?.classList.remove('hidden')
+
+      try {
+        const response = await fetch('/api/submit-comment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          // 如果是博主 token 验证失败，清除缓存的 token
+          if (response.status === 403 && ownerToken) {
+            localStorage.removeItem('owner_token')
+          }
+          throw new Error(data.error || '提交失败')
+        }
+
+        // 如果是博主评论且验证成功，缓存 token
+        if (ownerToken) {
+          localStorage.setItem('owner_token', ownerToken)
+        }
+
+        if (data.command) {
+          showToast(data.message || '管理操作已完成')
+
+          const contentInput = targetForm.querySelector(
+            'textarea',
+          ) as HTMLTextAreaElement
+          if (contentInput) contentInput.value = ''
+
+          if (isMainForm) {
+            charCount.textContent = '0'
+          } else {
+            targetForm.parentElement!.innerHTML = ''
+            const article = commentsList.querySelector(
+              `article[data-id="${payload.replyToId}"]`,
+            )
+            const replyBtn = article?.querySelector('.reply-btn')
+            if (replyBtn) {
+              replyBtn.innerHTML = `回复 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>`
+            }
+          }
+
+          await loadComments()
+          return
+        }
+
+        showToast(getSuccessMessage(!isMainForm))
+
+        // 只重置内容，保留用户信息
+        const contentInput = targetForm.querySelector(
+          'textarea',
+        ) as HTMLTextAreaElement
+        if (contentInput) contentInput.value = ''
+
+        if (isMainForm) {
+          charCount.textContent = '0'
+          // 恢复用户信息到表单（因为我们不再调用 reset）
+          const savedInfo = getSavedUserInfo()
+          if (nameInput) nameInput.value = savedInfo.name
+          if (emailInput) emailInput.value = savedInfo.email
+          if (websiteInput) websiteInput.value = savedInfo.website || ''
+        } else {
+          // 如果是回复，关闭回复框
+          targetForm.parentElement!.innerHTML = ''
+          // 恢复回复按钮状态
+          const article = commentsList.querySelector(
+            `article[data-id="${payload.replyToId}"]`,
+          )
+          if (article) {
+            const replyBtn = article.querySelector('.reply-btn')
+            if (replyBtn) {
+              replyBtn.innerHTML = `回复 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>`
+            }
+          }
+        }
+
+        // 保存到本地缓存并立即显示（不再轮询，刷新页面时会自动验证）
+        saveAndDisplayComment(payload, !isMainForm, isVerifiedOwner)
+      } catch (error) {
+        console.error('Submit error:', error)
+        showToast('提交失败，请重试', 'error')
+      } finally {
+        submitBtnCurrent.disabled = false
+        if (submitTextCurrent)
+          submitTextCurrent.textContent = isMainForm ? '提交留言' : '提交回复'
+        submitIconCurrent?.classList.remove('hidden')
+        submitSpinnerCurrent?.classList.add('hidden')
+      }
+    }
+
+    form?.addEventListener('submit', (e) => submitComment(e, form), {
+      signal,
+    })
+
+    loadComments()
+  }
+
+  document.addEventListener('DOMContentLoaded', initComments)
+  document.addEventListener('astro:after-swap', initComments)
+
+  if (document.readyState === 'complete') {
+    initComments()
+  }
+</script>
+
+<style>
+  /* 去除输入框焦点样式 */
+  .no-focus:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* 评论内容样式 */
+  .message-content :global(.emoji) {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 0.1em;
+  }
+
+  .message-content :global(.comment-link) {
+    color: #0369a1;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: rgba(3, 105, 161, 0.3);
+    transition: text-decoration-color 0.2s;
+  }
+
+  .message-content :global(.comment-link:hover) {
+    text-decoration-color: rgba(3, 105, 161, 1);
+  }
+
+  :global(.dark) .message-content :global(.comment-link) {
+    color: #38bdf8;
+    text-decoration-color: rgba(56, 189, 248, 0.3);
+  }
+
+  :global(.dark) .message-content :global(.comment-link:hover) {
+    text-decoration-color: rgba(56, 189, 248, 1);
+  }
+
+  .message-content :global(.inline-code) {
+    background-color: rgba(120, 113, 108, 0.1);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.875em;
+  }
+
+  :global(.dark) .message-content :global(.inline-code) {
+    background-color: rgba(168, 162, 158, 0.15);
+  }
+
+  /* 剧透样式 */
+  .message-content :global(.spoiler) {
+    background-color: #1c1917;
+    color: transparent;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .message-content :global(.spoiler:hover) {
+    background-color: #292524;
+  }
+
+  .message-content :global(.spoiler.revealed) {
+    background-color: rgba(120, 113, 108, 0.1);
+    color: inherit;
+    user-select: auto;
+  }
+
+  :global(.dark) .message-content :global(.spoiler) {
+    background-color: #fafaf9;
+  }
+
+  :global(.dark) .message-content :global(.spoiler:hover) {
+    background-color: #e7e5e4;
+  }
+
+  :global(.dark) .message-content :global(.spoiler.revealed) {
+    background-color: rgba(168, 162, 158, 0.15);
+    color: inherit;
+  }
+
+  .emoji-picker {
+    animation: fadeIn 0.15s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .emoji-picker {
+      width: calc(100vw - 2rem);
+      max-width: 20rem;
+      left: 0;
+    }
+  }
+
+  /* 头像加载过渡 */
+  #avatar-preview {
+    transition: opacity 0.3s ease;
+  }
+
+  /* 展开/收起图标旋转 */
+  .toggle-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .toggle-icon.rotate-180 {
+    transform: rotate(180deg);
+  }
+
+  :global(.comments-section .comment-featured-mark) {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: inline-flex;
+    width: 1.35rem;
+    height: 1.35rem;
+    align-items: center;
+    justify-content: center;
+    color: color-mix(in srgb, var(--muted) 56%, transparent);
+    opacity: 0.78;
+  }
+
+  :global(.comments-section .comment-featured-mark svg) {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  :global(.comments-section .comment-owner-mark) {
+    position: absolute;
+    right: -0.125rem;
+    bottom: -0.125rem;
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    pointer-events: none;
+    border: 1px solid var(--paper);
+    border-radius: 9999px;
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAMAAAANIilAAAAAY1BMVEUAAAD/zAD/zQD/xwD/zwD/ywD/zAD/ywD/zQD/zAD/zAD/zAD/zAD/zQD/ygD/ywD/zAD/zAD/////+d///O//5oD/1jD/0iD/31//8r//43D/4GD/3FD/2UD/7qv/6JD/9s/3vr4WAAAAEXRSTlMAv98gEEDQcKCAUO+Qj2CwrzmNzEwAAAGgSURBVEjHpdfRmoIgEIbhAUWU2mrQdG2zuv+r3DpoWZX5kafv/H2cSBEpXulsXWl+ptWpMSVtrmwUL1K22ERNkHNvtlAx7SAtFMNqMLzdcSJ9EGj5xRv6ituKN1VFRi80b0wXwKZ1ucAVZ1TNNV4rvGoHFrt0La+zm37w2Xvf86pdWLQa2o4jqbd10PqRY70fE3Hob//qzuDSBlt/ZXBpha0fWL50kbAtC5VPbLH1Nwk34tSTf3dhFucuOVbf/eGJ5blNwnoWc9Qk7ChjS0ds/V3GNSls/VXG1freHFr/v64NPeb3iyZg1515FuXYboAY254hPudYXixY32ZYjfbcK7asqJbxPfF/H8nKePShn+gz6WScsGyoFO0k2rCVKAlfghU3sUbCt8ReYonkuR/hho5WoK03YRXa9Cds2RDY9c/YakLvmxFadkTg0h20dXi5Rw5vQ7CJE5GN/c2dbHl2ENxzVvtPjlLLw6NOEnwEzLdBV9nHv+xV2wc775AcfWfBZ0KNrSoI5TSg5vNPI1xh1Uo2OR91pjkp/WK6qq0T5C94FL1DBHlUuAAAAABJRU5ErkJggg==')
+      center / contain no-repeat;
+    box-shadow: 0 0 0 1px
+      color-mix(in srgb, var(--line-strong) 42%, transparent);
+  }
+</style>

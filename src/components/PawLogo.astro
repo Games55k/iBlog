@@ -1,0 +1,99 @@
+---
+import { SITE } from '@consts'
+---
+
+<div
+  id="paw-logo"
+  class="pointer-events-none fixed bottom-8 left-6 z-40 hidden opacity-70 xl:block"
+>
+  <a href="/" class="group block text-black" title={SITE.NAME}>
+    <svg
+      class="pointer-events-auto h-10 w-10 text-neutral-500 transition-colors duration-300 ease-in-out group-hover:text-stone-700 dark:text-stone-700 dark:group-hover:text-stone-300"
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Dog paw"
+    >
+      <!-- 轮廓：stroke 属性用原子类，dasharray/offset 用内联 style，动画用自定义类名配合 <style> -->
+      <path
+        class="paw-outline fill-none stroke-current stroke-[2.5] [stroke-linecap:round]"
+        d="M35 90 V65 C35 56.716 41.716 50 50 50 C58.284 50 65 56.716 65 65 V90"
+        style="stroke-dasharray:120; stroke-dashoffset:120"></path>
+
+      <!-- 爪印：使用自定义类名 paw-group 触发动画 -->
+      <g class="paw-group">
+        <circle cx="50" cy="70" r="4" class="fill-current"></circle>
+        <circle cx="42" cy="62" r="2.5" class="fill-current"></circle>
+        <circle cx="50" cy="58" r="2.5" class="fill-current"></circle>
+        <circle cx="58" cy="62" r="2.5" class="fill-current"></circle>
+      </g>
+    </svg>
+  </a>
+</div>
+
+<style>
+  /* 狗爪轮廓循环描边动画 - 12秒周期，长时间稳定显示 */
+  .paw-outline {
+    stroke-dasharray: 120;
+    stroke-dashoffset: 120;
+    animation: paw-outline-loop 12s ease-in-out infinite;
+  }
+
+  @keyframes paw-outline-loop {
+    0% {
+      stroke-dashoffset: 120;
+      opacity: 0;
+    }
+    5% {
+      opacity: 1;
+    }
+    15% {
+      stroke-dashoffset: 0;
+    }
+    /* 稳定显示阶段 15% - 85% */
+    85% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+    95% {
+      opacity: 1;
+    }
+    100% {
+      stroke-dashoffset: -120;
+      opacity: 0;
+    }
+  }
+
+  /* 狗爪印循环动画 - 与轮廓同步，12秒周期 */
+  .paw-group {
+    animation: paw-fade-loop 12s ease-in-out infinite;
+  }
+
+  @keyframes paw-fade-loop {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    10% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    20% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    /* 稳定显示阶段 20% - 80% */
+    80% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    95% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+</style>

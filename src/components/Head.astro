@@ -1,0 +1,244 @@
+---
+import '../styles/global.css'
+
+import { ClientRouter } from 'astro:transitions'
+import { SITE } from '@consts'
+
+interface Props {
+  title: string
+  description: string
+  image?: string
+}
+
+const siteUrl = import.meta.env.SITE
+const canonicalURL = siteUrl ? new URL(Astro.url.pathname, siteUrl) : Astro.url
+const generator = 'Astro'
+const shouldRegisterServiceWorker = import.meta.env.PROD
+
+const { title, description } = Astro.props
+---
+
+<!-- Global Metadata -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<!-- DNS Prefetch & Preconnect for faster resource loading -->
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="dns-prefetch" href="https://weavatar.com" />
+
+<!-- Theme Color (浏览器地址栏颜色) -->
+<meta
+  name="theme-color"
+  content="#ffffff"
+  media="(prefers-color-scheme: light)"
+/>
+<meta
+  name="theme-color"
+  content="#09090b"
+  media="(prefers-color-scheme: dark)"
+/>
+
+<link
+  rel="icon"
+  type="image/png"
+  href="/favicon.png"
+  media="(prefers-color-scheme: dark)"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  href="/favicon.png"
+  media="(prefers-color-scheme: light)"
+/>
+
+<!-- Safari PWA -->
+<link rel="apple-touch-icon" href="/icons/ios-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content={SITE.NAME} />
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="/manifest.json" />
+
+<link rel="icon" type="image/png" href="/favicon.png" />
+<meta name="generator" content={generator} />
+
+<!-- Canonical URL -->
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content={Astro.url} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<!-- <meta property="og:image" content={new URL(image, Astro.url)} /> -->
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={Astro.url} />
+<meta property="twitter:title" content={title} />
+<meta property="twitter:description" content={description} />
+<!-- <meta property="twitter:image" content={new URL(image, Astro.url)} /> -->
+
+<ClientRouter />
+
+<!-- RSS Link -->
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  title={SITE.NAME}
+  href={siteUrl ? new URL('rss.xml', siteUrl) : '/rss.xml'}
+/>
+
+<script>
+  import type { TransitionBeforeSwapEvent } from 'astro:transitions/client'
+  document.addEventListener('astro:before-swap', (e) =>
+    [
+      ...(e as TransitionBeforeSwapEvent).newDocument.head.querySelectorAll(
+        'link[as="font"]',
+      ),
+    ].forEach((link) => link.remove()),
+  )
+</script>
+
+<script is:inline>
+  function init() {
+    preloadTheme()
+    onScroll()
+    // animate()
+
+    const backToPrev = document.getElementById('back-to-prev')
+    if (backToPrev && backToPrev.dataset.bound !== 'true') {
+      backToPrev.dataset.bound = 'true'
+      backToPrev.addEventListener('click', () => window.history.back())
+    }
+
+    if (document.documentElement.dataset.scrollWatcherBound !== 'true') {
+      document.documentElement.dataset.scrollWatcherBound = 'true'
+      document.addEventListener('scroll', onScroll, { passive: true })
+    }
+  }
+
+  // function animate() {
+  //   const animateElements = document.querySelectorAll('.animate')
+
+  //   animateElements.forEach((element, index) => {
+  //     setTimeout(() => {
+  //       element.classList.add('show')
+  //     }, index * 50)
+  //   })
+  // }
+
+  function onScroll() {
+    if (window.scrollY > 0) {
+      document.documentElement.classList.add('scrolled')
+    } else {
+      document.documentElement.classList.remove('scrolled')
+    }
+  }
+
+  function toggleTheme(dark) {
+    const css = document.createElement('style')
+
+    css.appendChild(
+      document.createTextNode(
+        `* {
+             -webkit-transition: none !important;
+             -moz-transition: none !important;
+             -o-transition: none !important;
+             -ms-transition: none !important;
+             transition: none !important;
+          }
+        `,
+      ),
+    )
+
+    document.head.appendChild(css)
+
+    if (dark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+
+    void window.getComputedStyle(css).opacity
+    document.head.removeChild(css)
+  }
+
+  function preloadTheme() {
+    const userTheme = localStorage.getItem('theme') || 'system'
+
+    if (userTheme === 'light') {
+      toggleTheme(false)
+    } else if (userTheme === 'dark') {
+      toggleTheme(true)
+    } else {
+      // system mode
+      toggleTheme(window.matchMedia('(prefers-color-scheme: dark)').matches)
+    }
+  }
+
+  // 监听系统主题变化
+  if (document.documentElement.dataset.themeMediaBound !== 'true') {
+    document.documentElement.dataset.themeMediaBound = 'true'
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', (event) => {
+        const theme = localStorage.getItem('theme') || 'system'
+        if (theme === 'system') {
+          toggleTheme(event.matches)
+        }
+      })
+  }
+
+  document.addEventListener('DOMContentLoaded', () => init())
+  document.addEventListener('astro:after-swap', () => init())
+  preloadTheme()
+</script>
+
+<script is:inline define:vars={{ shouldRegisterServiceWorker }}>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      if (shouldRegisterServiceWorker) {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            console.log('[PWA] Service Worker registered:', registration.scope)
+
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing
+              console.log('[PWA] New Service Worker found')
+
+              newWorker?.addEventListener('statechange', () => {
+                if (
+                  newWorker.state === 'installed' &&
+                  navigator.serviceWorker.controller
+                ) {
+                  console.log('[PWA] New content available, please refresh')
+                }
+              })
+            })
+          })
+          .catch((error) => {
+            console.error('[PWA] Service Worker registration failed:', error)
+          })
+      } else {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          registrations.forEach((registration) => registration.unregister())
+        })
+
+        if ('caches' in window) {
+          caches.keys().then((keys) => {
+            keys.forEach((key) => caches.delete(key))
+          })
+        }
+      }
+    })
+  }
+</script>

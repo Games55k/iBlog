@@ -1,0 +1,102 @@
+---
+import Container from '@components/Container.astro'
+import PageLayout from '@layouts/PageLayout.astro'
+---
+
+<PageLayout title="离线模式" description="你当前处于离线状态">
+  <Container>
+    <div
+      class="animate flex min-h-[60vh] flex-col items-center justify-center text-center"
+    >
+      <div class="mb-8 text-8xl">📡</div>
+
+      <h1
+        class="mb-4 text-4xl font-semibold text-stone-900 dark:text-stone-100"
+      >
+        你当前处于离线状态
+      </h1>
+
+      <p class="mb-8 max-w-md text-lg text-stone-700 dark:text-stone-300">
+        看起来你的网络连接出现了问题。不过别担心，你可以继续浏览已缓存的页面。
+      </p>
+
+      <div class="space-y-4">
+        <button
+          onclick="window.location.reload()"
+          class="rounded-lg bg-stone-900 px-6 py-3 font-medium text-stone-100 transition-colors hover:bg-stone-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-300"
+        >
+          重新连接
+        </button>
+
+        <div>
+          <a
+            href="/"
+            class="text-stone-700 underline decoration-stone-400 underline-offset-2 transition-colors hover:text-stone-900 hover:decoration-stone-500 dark:text-stone-300 dark:decoration-stone-600 dark:hover:text-stone-100 dark:hover:decoration-stone-500"
+          >
+            返回首页
+          </a>
+        </div>
+      </div>
+
+      <div class="mt-12 text-sm text-stone-600 dark:text-stone-400">
+        <p>💡 提示：已缓存的页面仍然可以访问</p>
+      </div>
+    </div>
+  </Container>
+</PageLayout>
+
+<script>
+  // 检测网络状态变化
+  window.addEventListener('online', () => {
+    console.log('[PWA] 网络已恢复')
+    // 可以显示一个提示，告诉用户网络已恢复
+    const notification = document.createElement('div')
+    notification.textContent = '✅ 网络已恢复'
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 500;
+      z-index: 9999;
+      animation: slideIn 0.3s ease-out;
+    `
+    document.body.appendChild(notification)
+
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease-in'
+      setTimeout(() => notification.remove(), 300)
+    }, 3000)
+  })
+
+  window.addEventListener('offline', () => {
+    console.log('[PWA] 网络已断开')
+  })
+</script>
+
+<style>
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+</style>

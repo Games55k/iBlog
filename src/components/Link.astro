@@ -1,0 +1,66 @@
+---
+import { cn } from '@lib/utils'
+
+type Props = {
+  href: string
+  external?: boolean
+  underline?: boolean
+  class?: string
+  [key: string]: unknown
+}
+
+const {
+  href,
+  external,
+  underline = true,
+  class: className,
+  ...rest
+} = Astro.props
+---
+
+<a
+  href={href}
+  target={external ? '_blank' : '_self'}
+  rel={external ? 'noopener noreferrer' : undefined}
+  class={cn(
+    'inline-block text-current transition-colors duration-300 ease-in-out',
+    'text-stone-700 dark:text-stone-300',
+    'hover:text-stone-900 dark:hover:text-stone-100',
+    'active:text-stone-900 dark:active:text-stone-100',
+    underline && [
+      'underline underline-offset-2',
+      'decoration-stone-400/50 dark:decoration-stone-500/50',
+      'hover:decoration-stone-600 dark:hover:decoration-stone-400',
+    ],
+    className,
+  )}
+  style="text-decoration-thickness: 1px;"
+  {...rest}
+>
+  <slot />
+</a>
+
+<style>
+  a[target='_blank']::after {
+    content: '↗';
+    font-size: 0.75em;
+    opacity: 0.6;
+    transition: opacity 0.3s ease-in-out;
+    margin-left: 0.1em;
+  }
+
+  a[target='_blank']:hover::after {
+    opacity: 1;
+  }
+
+  /* 移动端优化 */
+  @media (hover: none) {
+    a:hover {
+      color: inherit;
+      text-decoration-color: inherit;
+    }
+    a:active {
+      text-decoration-color: currentColor;
+    }
+  }
+</style>
