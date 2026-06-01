@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createAlbum, type AlbumRequest } from '../src/lib/server/album-api'
-import { setCorsHeaders } from '../src/lib/server/api-utils'
+import { createAlbum, type AlbumRequest } from '../src/lib/server/album-api.js'
+import { setCorsHeaders } from '../src/lib/server/api-utils.js'
 
 function parseBody(req: VercelRequest): AlbumRequest {
   if (typeof req.body === 'string') {

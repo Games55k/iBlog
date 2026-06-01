@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { buildGitHubHeaders, getRepoFromEnv, hasAnyEnv } from './api-utils'
+import { buildGitHubHeaders, getRepoFromEnv, hasAnyEnv } from './api-utils.js'
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 const THOUGHT_API_TOKEN = process.env.THOUGHT_API_TOKEN

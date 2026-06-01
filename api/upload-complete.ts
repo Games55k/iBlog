@@ -2,8 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import {
   completeUpload,
   type UploadCompleteRequest,
-} from '../src/lib/server/upload-api'
-import { setCorsHeaders } from '../src/lib/server/api-utils'
+} from '../src/lib/server/upload-api.js'
+import { setCorsHeaders } from '../src/lib/server/api-utils.js'
 
 function parseBody(req: VercelRequest): UploadCompleteRequest {
   if (typeof req.body === 'string') {

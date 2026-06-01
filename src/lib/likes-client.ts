@@ -4,7 +4,7 @@
  * - sendLike: 防抖批量写入（800ms 窗口，合并同一时间段内所有点赞操作为单次请求）
  */
 
-import { getFingerprint } from './fingerprint'
+import { getFingerprint } from './fingerprint.js'
 
 const API_BASE = '/api/likes'
 const LIKES_CACHE_KEY = 'blog_likes_cache'
