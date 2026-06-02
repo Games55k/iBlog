@@ -5,7 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'astro/config'
 import astroExpressiveCode from 'astro-expressive-code'
 import rehypeComponents from 'rehype-components'
+import rehypeKatex from 'rehype-katex'
 import remarkDirective from 'remark-directive'
+import remarkMath from 'remark-math'
 import { copyFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
@@ -106,11 +108,13 @@ export default defineConfig({
     remarkPlugins: [
       remarkGithubAlerts,
       remarkDemoteH1ToH2,
+      remarkMath,
       remarkDirective,
       remarkDirectiveRehype,
       [remarkExternalLinks, { allowHostnames: ['example.com'] }],
     ],
     rehypePlugins: [
+      rehypeKatex,
       rehypeHeadingLinks,
       rehypeThoughtLineBreaks,
       [
