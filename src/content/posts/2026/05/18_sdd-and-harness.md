@@ -1,5 +1,5 @@
 ---
-title: "SDD和Harness"
+title: "阅读：基于 Harness 治理和 SDD 的团队级 AI 研发范式演进与实践"
 description: "基于 Harness 治理和 SDD 的团队级 AI 研发范式演进与实践"
 date: "2026-05-18T00:00:00+08:00"
 slug: "sdd-and-harness"

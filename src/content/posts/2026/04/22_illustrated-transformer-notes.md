@@ -1,5 +1,5 @@
 ---
-title: "《图解Transformer》总结"
+title: "阅读《图解Transformer》"
 description: "一个使用注意力来提高这些模型训练速度的模型。"
 date: "2026-04-22T00:00:00+08:00"
 slug: "illustrated-transformer-notes"
