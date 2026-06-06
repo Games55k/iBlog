@@ -11,7 +11,7 @@ tags:
 
 
 > 用于记录个人 LeetCode 刷题集合  
-> 目前已收录 8 题
+> 目前已收录 9 题
 
 :::::leetcode-list
 
@@ -314,6 +314,167 @@ public:
             ans = std::max(ans, k - x);
         }
         return ans;
+    }
+};
+```
+:::
+
+::::
+
+::::leetcode{number="146" title="LRU 缓存" difficulty="Mid" tags="链表/哈希"}
+
+题目链接：[LRU 缓存](https://leetcode.cn/problems/lru-cache)
+
+请你设计并实现一个满足  LRU (最近最少使用) 缓存 约束的数据结构。
+
+**思路：**
+这题我们可以用哈希表 + 双向链表的结构去维护，以达到 `O(1)` 的时间复杂度。规定链表头部附近是最近使用过的节点，尾部附近则是最近未使用的节点。
+
+当调用 `Get` 时，只需要去哈希表里查询 key 是否存在；如果存在，就返回对应值，并把这个节点移动到链表头部。调用 `Put` 时也类似，如果 key 已经存在，就更新值并移到头部；如果不存在，就新建节点插入头部。最后如果容量超出限制，就删除链表尾部前一个节点，同时从哈希表里移除它。
+
+**代码实现：**
+
+:::code-group
+```go
+type node struct {
+    key   int
+    value int
+    prev  *node
+    next  *node
+}
+
+type LRUCache struct {
+    capacity int
+    cache    map[int]*node
+    head     *node
+    tail     *node
+}
+
+func Constructor(capacity int) LRUCache {
+    head := &node{}
+    tail := &node{}
+    head.next = tail
+    tail.prev = head
+    return LRUCache{
+        capacity: capacity,
+        cache:    make(map[int]*node, capacity),
+        head:     head,
+        tail:     tail,
+    }
+}
+
+func (c *LRUCache) Get(key int) int {
+    if n, ok := c.cache[key]; ok {
+        c.moveToFront(n)
+        return n.value
+    }
+    return -1
+}
+
+func (c *LRUCache) Put(key int, value int) {
+    if n, ok := c.cache[key]; ok {
+        n.value = value
+        c.moveToFront(n)
+        return
+    }
+    n := &node{
+        key:   key,
+        value: value,
+    }
+    c.cache[key] = n
+    c.addToFront(n)
+    if len(c.cache) > c.capacity {
+        toRemove := c.tail.prev
+        c.removeNode(toRemove)
+        delete(c.cache, toRemove.key)
+    }
+}
+
+func (c *LRUCache) moveToFront(n *node) {
+    c.removeNode(n)
+    c.addToFront(n)
+}
+
+func (c *LRUCache) addToFront(n *node) {
+    n.prev = c.head
+    n.next = c.head.next
+    c.head.next.prev = n
+    c.head.next = n
+}
+
+func (c *LRUCache) removeNode(n *node) {
+    n.prev.next = n.next
+    n.next.prev = n.prev
+}
+```
+
+```cpp
+class Node {
+public:
+    int key;
+    int value;
+    Node* prev;
+    Node* next;
+
+    Node(int k = 0, int v = 0) : key(k), value(v), prev(nullptr), next(nullptr) {}
+};
+
+class LRUCache {
+private:
+    int capacity;
+    unordered_map<int, Node*> cache;
+    Node* head;
+    Node* tail;
+
+    void removeNode(Node* node) {
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
+
+    void addToFront(Node* node) {
+        node->prev = head;
+        node->next = head->next;
+        head->next->prev = node;
+        head->next = node;
+    }
+
+    void moveToFront(Node* node) {
+        removeNode(node);
+        addToFront(node);
+    }
+
+public:
+    LRUCache(int capacity) : capacity(capacity) {
+        head = new Node();
+        tail = new Node();
+        head->next = tail;
+        tail->prev = head;
+    }
+
+    int get(int key) {
+        if (!cache.contains(key)) {
+            return -1;
+        }
+        Node* node = cache[key];
+        moveToFront(node);
+        return node->value;
+    }
+
+    void put(int key, int value) {
+        if (cache.contains(key)) {
+            Node* node = cache[key];
+            node->value = value;
+            moveToFront(node);
+            return;
+        }
+        Node* node = new Node(key, value);
+        cache[key] = node;
+        addToFront(node);
+        if (cache.size() > capacity) {
+            Node* toRemove = tail->prev;
+            removeNode(toRemove);
+            cache.erase(toRemove->key);
+        }
     }
 };
 ```
