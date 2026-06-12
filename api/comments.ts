@@ -38,10 +38,12 @@ interface ParsedComment {
 const md5 = (value: string) =>
   crypto.createHash('md5').update(value).digest('hex')
 
-const getAvatar = (email?: string) =>
-  email
+const getAvatar = (email?: string, isOwner = false) => {
+  if (isOwner) return '/favicon.png'
+  return email
     ? `https://weavatar.com/avatar/${md5(email.toLowerCase())}?s=80&d=identicon`
     : 'https://weavatar.com/avatar/?d=mp'
+}
 
 function getCommentsRepo() {
   return getRepoFromEnv('COMMENTS_REPO', 'GITHUB_REPO')
@@ -77,11 +79,12 @@ function parseComment(comment: GitHubComment): ParsedComment | null {
   try {
     const meta = parseYamlMeta(metaMatch[1])
     const content = extractContent(comment.body)
+    const isOwner = meta.is_owner === 'true'
 
     return {
       id: comment.id,
       name: meta.name || '匿名',
-      avatar: getAvatar(meta.email),
+      avatar: getAvatar(meta.email, isOwner),
       website:
         meta.website && meta.website !== SITE_URL ? meta.website : undefined,
       content,
@@ -93,7 +96,7 @@ function parseComment(comment: GitHubComment): ParsedComment | null {
             name: meta.reply_to_name || '',
           }
         : undefined,
-      isOwner: meta.is_owner === 'true',
+      isOwner,
       featured: meta.featured === 'true',
     }
   } catch {

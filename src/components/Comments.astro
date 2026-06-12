@@ -440,9 +440,11 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
     return {
       id: pending.id,
       name: pending.name,
-      avatar: pending.email
-        ? `https://weavatar.com/avatar/${md5Hash}?s=80&d=identicon`
-        : 'https://weavatar.com/avatar/?d=mp',
+      avatar: pending.isOwner
+        ? '/favicon.png'
+        : pending.email
+          ? `https://weavatar.com/avatar/${md5Hash}?s=80&d=identicon`
+          : 'https://weavatar.com/avatar/?d=mp',
       website: pending.website,
       content: pending.content,
       createdAt: pending.createdAt,
