@@ -826,6 +826,56 @@ code-group-tabs {
   display: none !important;
 }
 
+.mermaid-diagram {
+  margin: 1.75rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  background: color-mix(in srgb, var(--paper-card) 88%, transparent);
+}
+
+.mermaid-diagram svg {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  height: auto;
+  margin-inline: auto;
+  overflow: visible;
+  font-family: var(--font-sans);
+}
+
+.mermaid-diagram svg foreignObject {
+  overflow: visible;
+}
+
+.mermaid-diagram .nodeLabel,
+.mermaid-diagram .edgeLabel,
+.mermaid-diagram .label {
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.mermaid-diagram-source {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.mermaid-diagram-error {
+  margin: 0;
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: var(--ink-soft);
+  background: transparent;
+}
+
+html.dark .mermaid-diagram {
+  background: color-mix(in srgb, var(--paper-card) 82%, black 10%);
+}
+
 .leetcode-list {
   margin: 1.75rem 0;
   overflow-x: auto;

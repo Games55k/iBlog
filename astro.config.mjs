@@ -15,6 +15,7 @@ import { CodeGroupComponent } from './src/lib/rehype/rehype-component-code-group
 import { LeetCodeComponent } from './src/lib/rehype/rehype-component-leetcode.mjs'
 import { LeetCodeListComponent } from './src/lib/rehype/rehype-component-leetcode-list.mjs'
 import rehypeHeadingLinks from './src/lib/rehype/rehype-heading-links.mjs'
+import rehypeMermaid from './src/lib/rehype/rehype-mermaid.mjs'
 import rehypeThoughtLineBreaks from './src/lib/rehype/rehype-thought-line-breaks.mjs'
 import remarkGithubAlerts from './src/lib/remark/github-alert.mjs'
 import remarkDirectiveRehype from './src/lib/remark/remark-directive-rehype.mjs'
@@ -116,6 +117,7 @@ export default defineConfig({
     rehypePlugins: [
       rehypeKatex,
       rehypeHeadingLinks,
+      rehypeMermaid,
       rehypeThoughtLineBreaks,
       [
         rehypeComponents,

@@ -259,9 +259,9 @@ const postReactions = [
     syncLanguages() {
       this.tabs.forEach((tab, index) => {
         const panel = this.panels[index]
-        const actualLanguage = panel
-          ?.querySelector<HTMLElement>('pre[data-language], [data-language]')
-          ?.dataset.language
+        const actualLanguage = panel?.querySelector<HTMLElement>(
+          'pre[data-language], [data-language]',
+        )?.dataset.language
 
         if (!actualLanguage) return
 
@@ -354,6 +354,60 @@ const postReactions = [
 
   if (!customElements.get('code-group-tabs')) {
     customElements.define('code-group-tabs', CodeGroupTabs)
+  }
+
+  async function renderMermaidDiagrams() {
+    const diagrams = Array.from(
+      document.querySelectorAll<HTMLElement>('.mermaid-diagram'),
+    )
+    if (diagrams.length === 0) return
+
+    if ('fonts' in document) {
+      await document.fonts.ready
+    }
+
+    const { default: mermaid } = await import('mermaid')
+    const theme = document.documentElement.classList.contains('dark')
+      ? 'dark'
+      : 'default'
+    const fontFamily = getComputedStyle(document.documentElement)
+      .getPropertyValue('--font-sans')
+      .trim()
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'strict',
+      theme,
+      fontFamily,
+      flowchart: {
+        htmlLabels: true,
+        useMaxWidth: true,
+      },
+      themeVariables: {
+        fontFamily,
+      },
+    })
+
+    const renderKey = `${theme}-${Date.now()}`
+
+    await Promise.all(
+      diagrams.map(async (diagram, index) => {
+        const source = diagram.dataset.mermaidSource?.trim()
+        if (!source) return
+
+        const id = `mermaid-${renderKey}-${index}`
+
+        try {
+          const { svg } = await mermaid.render(id, source)
+          diagram.innerHTML = svg
+          diagram.dataset.rendered = 'true'
+        } catch (error) {
+          diagram.dataset.rendered = 'false'
+          diagram.innerHTML = `<pre class="mermaid-diagram-error">${source}</pre>`
+          console.error('Failed to render Mermaid diagram:', error)
+        }
+      }),
+    )
   }
 
   function showCopyToast(message: string) {
@@ -515,8 +569,21 @@ const postReactions = [
   document.addEventListener('astro:after-swap', setupArticleActions)
   document.addEventListener('DOMContentLoaded', setupPostReactions)
   document.addEventListener('astro:after-swap', setupPostReactions)
+  document.addEventListener('DOMContentLoaded', renderMermaidDiagrams)
+  document.addEventListener('astro:after-swap', renderMermaidDiagrams)
+  new MutationObserver((mutations) => {
+    if (
+      mutations.some(
+        (mutation) =>
+          mutation.type === 'attributes' && mutation.attributeName === 'class',
+      )
+    ) {
+      renderMermaidDiagrams()
+    }
+  }).observe(document.documentElement, { attributes: true })
   if (document.readyState === 'complete') {
     setupArticleActions()
     setupPostReactions()
+    renderMermaidDiagrams()
   }
 </script>
