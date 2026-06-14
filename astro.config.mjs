@@ -4,6 +4,7 @@ import vercel from '@astrojs/vercel'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'astro/config'
 import astroExpressiveCode from 'astro-expressive-code'
+import { unified } from '@astrojs/markdown-remark'
 import rehypeComponents from 'rehype-components'
 import rehypeKatex from 'rehype-katex'
 import remarkDirective from 'remark-directive'
@@ -106,30 +107,32 @@ export default defineConfig({
   ],
 
   markdown: {
-    remarkPlugins: [
-      remarkGithubAlerts,
-      remarkDemoteH1ToH2,
-      remarkMath,
-      remarkDirective,
-      remarkDirectiveRehype,
-      [remarkExternalLinks, { allowHostnames: ['example.com'] }],
-    ],
-    rehypePlugins: [
-      rehypeKatex,
-      rehypeHeadingLinks,
-      rehypeMermaid,
-      rehypeThoughtLineBreaks,
-      [
-        rehypeComponents,
-        {
-          components: {
-            'code-group': CodeGroupComponent,
-            leetcode: LeetCodeComponent,
-            'leetcode-list': LeetCodeListComponent,
-          },
-        },
+    processor: unified({
+      remarkPlugins: [
+        remarkGithubAlerts,
+        remarkDemoteH1ToH2,
+        remarkMath,
+        remarkDirective,
+        remarkDirectiveRehype,
+        [remarkExternalLinks, { allowHostnames: ['example.com'] }],
       ],
-    ],
+      rehypePlugins: [
+        rehypeKatex,
+        rehypeHeadingLinks,
+        rehypeMermaid,
+        rehypeThoughtLineBreaks,
+        [
+          rehypeComponents,
+          {
+            components: {
+              'code-group': CodeGroupComponent,
+              leetcode: LeetCodeComponent,
+              'leetcode-list': LeetCodeListComponent,
+            },
+          },
+        ],
+      ],
+    }),
   },
 
   vite: {
