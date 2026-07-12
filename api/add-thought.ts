@@ -192,9 +192,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const filename = `${day}_${name}.md`
     const filePath = `${THOUGHTS_CONTENT_DIR}/${year}/${month}/${filename}`
     const fileContent = generateThoughtContent(content, tags, dateStr)
-    const shortContent =
-      content.length > 30 ? `${content.slice(0, 30)}...` : content
-    const commitMessage = `feat(thoughts): add ${shortContent}`
+    const commitMessage = 'feat: add a thought'
 
     const result = await createFileOnGitHub(
       filePath,
