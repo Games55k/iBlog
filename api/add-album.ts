@@ -1,4 +1,7 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type {
+  VercelRequest,
+  VercelResponse,
+} from '../src/lib/server/vercel-types.js'
 import { createAlbum, type AlbumRequest } from '../src/lib/server/album-api.js'
 import { setCorsHeaders } from '../src/lib/server/api-utils.js'
 

@@ -1,4 +1,7 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type {
+  VercelRequest,
+  VercelResponse,
+} from '../src/lib/server/vercel-types.js'
 import crypto from 'crypto'
 import {
   buildGitHubHeaders,

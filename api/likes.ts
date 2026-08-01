@@ -1,4 +1,7 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type {
+  VercelRequest,
+  VercelResponse,
+} from '../src/lib/server/vercel-types.js'
 import crypto from 'crypto'
 import {
   buildGitHubHeaders,
@@ -525,12 +528,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     try {
-      const body = req.body
+      const body = req.body as Record<string, unknown> | null
       if (!body || typeof body !== 'object') {
         return res.status(400).json({ error: 'Invalid body' })
       }
 
-      if (!body.fingerprint || !validateFingerprint(body.fingerprint)) {
+      if (
+        typeof body.fingerprint !== 'string' ||
+        !validateFingerprint(body.fingerprint)
+      ) {
         return res.status(400).json({ error: 'Invalid fingerprint' })
       }
 
@@ -570,7 +576,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (body.targetId) {
-        const payload = body as SingleLikePayload
+        const payload = body as unknown as SingleLikePayload
 
         if (payload.type !== 'thought') {
           return res.status(400).json({ error: 'Invalid type' })
