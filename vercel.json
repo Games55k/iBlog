@@ -1,4 +1,5 @@
 {
+  "installCommand": "bun install --frozen-lockfile --force",
   "build": {
     "env": {
       "TZ": "Asia/Shanghai"
